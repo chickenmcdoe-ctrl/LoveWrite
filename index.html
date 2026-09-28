@@ -195,20 +195,7 @@
                             <label class="block text-sm font-bold text-slate-700 mb-2">
                                 <i class="fa-solid fa-cat text-rose-500 mr-2"></i> Select Companion Photo / Sticker or Upload
                             </label>
-                            <div class="grid grid-cols-3 gap-3 mb-4">
-                                <div class="cursor-pointer border-2 rounded-xl p-3 text-center transition border-rose-500 bg-rose-50/50 flex flex-col items-center justify-center cat-option" onclick="selectCatPreset(0)">
-                                    <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&auto=format&fit=crop&q=80" class="w-16 h-16 object-cover rounded-full mb-2 shadow-sm pointer-events-none" alt="Cat 1" crossorigin="anonymous">
-                                    <span class="text-xs font-bold text-slate-700 pointer-events-none">Fluffy Kitten</span>
-                                </div>
-                                <div class="cursor-pointer border-2 rounded-xl p-3 text-center transition border-slate-200 hover:border-rose-200 flex flex-col items-center justify-center cat-option" onclick="selectCatPreset(1)">
-                                    <img src="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=200&auto=format&fit=crop&q=80" class="w-16 h-16 object-cover rounded-full mb-2 shadow-sm pointer-events-none" alt="Cat 2" crossorigin="anonymous">
-                                    <span class="text-xs font-bold text-slate-700 pointer-events-none">Sweet Tabby</span>
-                                </div>
-                                <div class="cursor-pointer border-2 rounded-xl p-3 text-center transition border-slate-200 hover:border-rose-200 flex flex-col items-center justify-center cat-option" onclick="selectCatPreset(2)">
-                                    <img src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=200&auto=format&fit=crop&q=80" class="w-16 h-16 object-cover rounded-full mb-2 shadow-sm pointer-events-none" alt="Cat 3" crossorigin="anonymous">
-                                    <span class="text-xs font-bold text-slate-700 pointer-events-none">Playful Kitty</span>
-                                </div>
-                            </div>
+                            <div id="catGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4"></div>
                             <input type="hidden" id="selectedCatUrl" value="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80">
                         </div>
 
@@ -267,6 +254,41 @@
                                 <option value="handwritten">4. 📜 Handwritten Parchment & Hand-Drawn Florals</option>
                                 <option value="golden">5. ✨ Golden Twilight & Starlight Blossoms</option>
                             </select>
+                        </div>
+
+                        <!-- Photo Template -->
+                        <div class="p-4 rounded-2xl border border-rose-100 bg-rose-50/40 space-y-4">
+                            <label class="block text-sm font-bold text-slate-700">
+                                <i class="fa-solid fa-images text-rose-500 mr-2"></i> Photo Template <span class="text-slate-400 font-medium">(optional)</span>
+                            </label>
+                            <select id="photoLayout" onchange="updatePhotoUI()" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-white">
+                                <option value="none">No photos</option>
+                                <option value="background">🖼️ Photo background with colour tint</option>
+                                <option value="top">📸 Photo collage above the letter</option>
+                                <option value="bottom">📸 Photo collage below the letter</option>
+                                <option value="sides">📸 Photo collage on both sides</option>
+                            </select>
+                            <div id="photoControls" class="hidden space-y-4">
+                                <div>
+                                    <button type="button" onclick="document.getElementById('photoInput').click()" class="px-4 py-2 rounded-xl bg-white border-2 border-dashed border-rose-300 text-rose-600 text-sm font-bold hover:bg-rose-50 transition cursor-pointer"><i class="fa-solid fa-plus mr-1"></i> Add photos</button>
+                                    <span id="photoCount" class="text-xs text-slate-500 ml-2">0/4</span>
+                                    <input type="file" id="photoInput" accept="image/*" multiple class="hidden" onchange="handlePhotoFiles(event)">
+                                    <div id="photoThumbs" class="flex flex-wrap gap-3 mt-3"></div>
+                                    <p class="text-xs text-slate-500 mt-2">Up to 4 photos. A background uses the first one.</p>
+                                </div>
+                                <div id="photoBgControls" class="hidden grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Colour tint</label>
+                                        <select id="photoTint" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white">
+                                            <option value="pink">Pink</option><option value="blue">Blue</option><option value="purple">Purple</option><option value="gold">Gold</option><option value="white">White</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Tint strength</label>
+                                        <input type="range" id="photoStrength" min="20" max="90" value="65" class="w-full accent-rose-500">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <button type="submit" class="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-rose-200 transition flex items-center justify-center space-x-2 text-lg cursor-pointer">
@@ -420,7 +442,7 @@
                     </div>
 
                     <!-- Opened Letter State -->
-                    <div id="dedicatedLetterState" class="hidden opacity-0 transform scale-95 transition-all duration-700 relative z-20 w-full bg-white/95 backdrop-blur-md p-8 sm:p-10 rounded-3xl shadow-2xl border border-rose-200 text-left">
+                    <div id="dedicatedLetterState" class="hidden opacity-0 transform scale-95 transition-all duration-700 relative z-20 w-full bg-white/95 backdrop-blur-md p-8 sm:p-10 rounded-3xl shadow-2xl border border-rose-200 text-left"><div id="colTop" class="hidden flex-wrap justify-center gap-4 mb-6"></div><div class="flex gap-3 items-start"><div id="colL" class="hidden flex-col gap-4 w-14 sm:w-24 shrink-0 pt-4"></div><div class="flex-1 min-w-0">
                         <div class="flex items-center space-x-4 mb-6 border-b border-rose-100 pb-4">
                             <img id="dedicatedLetterAvatar" src="" class="w-14 h-14 rounded-full object-cover border-2 border-rose-300 shadow-sm" alt="Avatar" crossorigin="anonymous">
                             <div>
@@ -441,7 +463,7 @@
                                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                                 <span>Celebrate</span>
                             </button>
-                        </div>
+                        </div></div><div id="colR" class="hidden flex-col gap-4 w-14 sm:w-24 shrink-0 pt-10"></div></div><div id="colBottom" class="hidden flex-wrap justify-center gap-4 mt-6"></div>
                     </div>
                 </div>
 
@@ -490,6 +512,7 @@
             const c = { s: p.sender, r: p.recipient, b: p.body, g: p.sign, t: p.theme,
                         a: aIdx >= 0 ? aIdx : p.avatar, m: mIdx >= 0 ? mIdx : p.music };
             if (p.yt) { c.y = p.yt; if (p.ytStart) c.x = p.ytStart; }
+            if (p.photos && p.photos.length) { c.p = p.photos; c.l = p.layout; c.k = p.tint; c.o = p.strength; }
             const bytes = new TextEncoder().encode(JSON.stringify(c));
             if (typeof CompressionStream === 'function') {
                 try { return '~' + b64uEncode(await pipeBytes(bytes, new CompressionStream('deflate-raw'))); } catch (e) {}
@@ -507,7 +530,8 @@
                         sender: c.s, recipient: c.r, body: c.b, sign: c.g, theme: c.t,
                         avatar: typeof c.a === 'number' ? catPresets[c.a] : c.a,
                         music: typeof c.m === 'number' ? musicPresets[c.m] : c.m,
-                        yt: c.y || '', ytStart: c.x || 0
+                        yt: c.y || '', ytStart: c.x || 0,
+                        photos: c.p || [], layout: c.l || 'none', tint: c.k || 'pink', strength: c.o
                     };
                 }
                 // Older, longer links keep working
@@ -703,6 +727,86 @@
             updateSimulatorPreview();
         }
 
+        // ---- Photo template ----
+        let letterPhotos = [];
+        const TINTS = { pink: '244,63,94', blue: '56,189,248', purple: '168,85,247', gold: '251,191,36', white: '255,255,255' };
+
+        function updatePhotoUI() {
+            const l = document.getElementById('photoLayout').value;
+            document.getElementById('photoControls').classList.toggle('hidden', l === 'none');
+            document.getElementById('photoBgControls').classList.toggle('hidden', l !== 'background');
+        }
+
+        function shrinkImage(file, max, q) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = e => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const sc = Math.min(1, max / Math.max(img.width, img.height));
+                        const c = document.createElement('canvas');
+                        c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+                        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                        resolve(c.toDataURL('image/jpeg', q));
+                    };
+                    img.onerror = reject; img.src = e.target.result;
+                };
+                r.onerror = reject; r.readAsDataURL(file);
+            });
+        }
+
+        async function handlePhotoFiles(e) {
+            const files = [...e.target.files].slice(0, 4 - letterPhotos.length);
+            for (const f of files) { try { letterPhotos.push(await shrinkImage(f, 800, 0.6)); } catch (err) {} }
+            e.target.value = '';
+            renderPhotoThumbs();
+        }
+
+        function renderPhotoThumbs() {
+            const box = document.getElementById('photoThumbs');
+            box.innerHTML = '';
+            letterPhotos.forEach((src, i) => {
+                const w = document.createElement('div'); w.className = 'relative';
+                const im = document.createElement('img'); im.src = src; im.className = 'w-16 h-16 object-cover rounded-lg border-2 border-white shadow';
+                const b = document.createElement('button'); b.type = 'button'; b.textContent = '×';
+                b.className = 'absolute -top-2 -right-2 w-5 h-5 rounded-full bg-rose-500 text-white text-xs leading-none cursor-pointer';
+                b.onclick = () => { letterPhotos.splice(i, 1); renderPhotoThumbs(); };
+                w.append(im, b); box.appendChild(w);
+            });
+            document.getElementById('photoCount').textContent = letterPhotos.length + '/4';
+        }
+
+        function applyPhotoStyle(d) {
+            const cont = document.getElementById('dedicatedCardContainer');
+            cont.style.backgroundImage = ''; cont.style.backgroundSize = ''; cont.style.backgroundPosition = '';
+            ['colTop', 'colBottom', 'colL', 'colR'].forEach(id => { const e = document.getElementById(id); e.innerHTML = ''; e.classList.add('hidden'); });
+            const ok = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
+            const photos = (Array.isArray(d.photos) ? d.photos : []).filter(x => typeof x === 'string' && ok.test(x)).slice(0, 4);
+            if (!photos.length || !d.layout || d.layout === 'none') return;
+            if (d.layout === 'background') {
+                const a = (d.strength == null ? 65 : Math.min(95, Math.max(0, +d.strength))) / 100;
+                const t = TINTS[d.tint] || TINTS.pink;
+                cont.style.backgroundImage = `linear-gradient(160deg, rgba(${t},${a}), rgba(${t},${(a * 0.55).toFixed(2)})), url("${photos[0]}")`;
+                cont.style.backgroundSize = 'cover'; cont.style.backgroundPosition = 'center';
+                return;
+            }
+            const tilt = [-4, 3, -2, 5];
+            const mk = (src, i, cls) => {
+                const im = document.createElement('img');
+                im.src = src; im.className = cls + ' object-cover rounded-lg border-4 border-white shadow-lg';
+                im.style.transform = `rotate(${tilt[i % 4]}deg)`;
+                return im;
+            };
+            if (d.layout === 'sides') {
+                photos.forEach((src, i) => (i % 2 === 0 ? document.getElementById('colL') : document.getElementById('colR')).appendChild(mk(src, i, 'w-full aspect-square')));
+                ['colL', 'colR'].forEach(id => { const e = document.getElementById(id); if (e.children.length) e.classList.remove('hidden'); });
+            } else {
+                const col = document.getElementById(d.layout === 'top' ? 'colTop' : 'colBottom');
+                photos.forEach((src, i) => col.appendChild(mk(src, i, 'w-20 h-20 sm:w-28 sm:h-28')));
+                col.classList.remove('hidden');
+            }
+        }
+
         function stopLetterMusic() {
             ytToken++;
             ytWantsPlay = false; ytReady = false;
@@ -723,11 +827,59 @@
             document.getElementById('successModal').classList.add('hidden');
         }
 
+        function makeCat(o) {
+            const fur = o.fur, eye = o.eye;
+            const stripes = o.stripe ? `<g stroke="${o.stripe}" stroke-width="5" stroke-linecap="round"><path d="M100 54v16M82 58l4 14M118 58l-4 14"/></g>` : '';
+            const acc = {
+                bow: '<g transform="translate(100 172)"><path d="M0 0L-26-14V14ZM0 0L26-14V14Z" fill="#f43f5e"/><circle r="6" fill="#be123c"/></g>',
+                heart: '<path transform="translate(150 58) scale(1.3)" d="M0 8C-14-6-6-18 0-8C6-18 14-6 0 8Z" fill="#f43f5e"/>',
+                crown: '<path d="M72 36L80 10L100 28L120 10L128 36Z" fill="#fbbf24" stroke="#f59e0b" stroke-width="3" stroke-linejoin="round"/>',
+                flower: '<g transform="translate(148 56)"><g fill="#f9a8d4"><circle cx="0" cy="-9" r="7"/><circle cx="9" cy="-3" r="7"/><circle cx="6" cy="8" r="7"/><circle cx="-6" cy="8" r="7"/><circle cx="-9" cy="-3" r="7"/></g><circle r="5" fill="#fde047"/></g>',
+                none: ''
+            }[o.acc || 'none'];
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="${o.bg}"/>
+<polygon points="42,78 56,22 96,58" fill="${fur}"/><polygon points="158,78 144,22 104,58" fill="${fur}"/>
+<polygon points="54,66 60,38 82,58" fill="#fbcfe8"/><polygon points="146,66 140,38 118,58" fill="#fbcfe8"/>
+<ellipse cx="100" cy="112" rx="68" ry="60" fill="${fur}"/>${o.patch || ''}${o.mask ? `<ellipse cx="100" cy="118" rx="34" ry="30" fill="${o.mask}" opacity=".85"/>` : ''}${stripes}
+<ellipse cx="74" cy="104" rx="11" ry="13" fill="#fff"/><ellipse cx="126" cy="104" rx="11" ry="13" fill="#fff"/>
+<circle cx="76" cy="106" r="8" fill="${eye}"/><circle cx="124" cy="106" r="8" fill="${eye}"/><circle cx="79" cy="102" r="3" fill="#fff"/><circle cx="127" cy="102" r="3" fill="#fff"/>
+<ellipse cx="56" cy="128" rx="9" ry="6" fill="#fda4af" opacity=".55"/><ellipse cx="144" cy="128" rx="9" ry="6" fill="#fda4af" opacity=".55"/>
+<path d="M94 124h12l-6 8z" fill="#f472b6"/><path d="M100 132v6M100 138q-8 8-16 2M100 138q8 8 16 2" stroke="#6b5b5b" stroke-width="3" fill="none" stroke-linecap="round"/>
+<g stroke="#6b5b5b" stroke-width="2" stroke-linecap="round"><path d="M62 128l-32-6M62 136l-32 6M138 128l32-6M138 136l32 6"/></g>${acc}</svg>`;
+            return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+        }
+
+        const catNames = ["Fluffy Kitten", "Sweet Tabby", "Playful Kitty", "Ginger", "Midnight", "Snowball", "Misty", "Calico", "Siamese"];
         const catPresets = [
             "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80",
             "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=500&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=500&auto=format&fit=crop&q=80"
+            "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=500&auto=format&fit=crop&q=80",
+            makeCat({ fur: '#f6a35a', stripe: '#d9782d', eye: '#3b2f2f', bg: '#ffe4e6', acc: 'bow' }),
+            makeCat({ fur: '#34343f', eye: '#facc15', bg: '#ede9fe', acc: 'heart' }),
+            makeCat({ fur: '#fafafa', eye: '#38bdf8', bg: '#e0f2fe', acc: 'crown' }),
+            makeCat({ fur: '#a3aebd', stripe: '#7c8797', eye: '#16a34a', bg: '#fef9c3', acc: 'flower' }),
+            makeCat({ fur: '#fafafa', eye: '#3b2f2f', bg: '#fce7f3', acc: 'bow', patch: '<ellipse cx="66" cy="86" rx="24" ry="20" fill="#f6a35a"/><ellipse cx="138" cy="84" rx="20" ry="18" fill="#3b3b45"/>' }),
+            makeCat({ fur: '#f3e6d3', mask: '#7a5c48', eye: '#60a5fa', bg: '#dcfce7' })
         ];
+
+        function renderCatGrid() {
+            const grid = document.getElementById('catGrid');
+            grid.innerHTML = '';
+            catPresets.forEach((url, i) => {
+                const d = document.createElement('div');
+                d.className = 'cursor-pointer border-2 rounded-xl p-3 text-center transition hover:border-rose-200 flex flex-col items-center justify-center cat-option ' + (i === 0 ? 'border-rose-500 bg-rose-50/50' : 'border-slate-200');
+                d.onclick = () => selectCatPreset(i);
+                const im = document.createElement('img');
+                im.src = url.replace('w=500', 'w=200');
+                im.className = 'w-16 h-16 object-cover rounded-full mb-2 shadow-sm pointer-events-none';
+                im.alt = catNames[i];
+                const sp = document.createElement('span');
+                sp.className = 'text-xs font-bold text-slate-700 pointer-events-none';
+                sp.textContent = catNames[i];
+                d.append(im, sp);
+                grid.appendChild(d);
+            });
+        }
 
         function selectCatPreset(index) {
             const url = catPresets[index];
@@ -873,7 +1025,14 @@
             const ytRaw = document.getElementById('youtubeLink').value.trim();
             const yt = ytRaw ? parseYouTube(ytRaw) : null;
             if (ytRaw && !yt) { alertBox("That doesn't look like a valid YouTube link."); return; }
+            const layout = document.getElementById('photoLayout').value;
+            const photos = layout === 'none' ? [] : (layout === 'background' ? letterPhotos.slice(0, 1) : letterPhotos);
+            if (layout !== 'none' && !photos.length) { alertBox('Add at least one photo, or set the photo template to "No photos".'); return; }
+            if (photos.join('').length > 800000) { alertBox('Those photos are too large. Try fewer or smaller photos.'); return; }
             const payload = {
+                photos, layout,
+                tint: document.getElementById('photoTint').value,
+                strength: +document.getElementById('photoStrength').value,
                 sender: document.getElementById('senderName').value,
                 recipient: document.getElementById('recipientName').value,
                 body: document.getElementById('letterBody').value,
@@ -1008,6 +1167,7 @@
                     document.getElementById('dedicatedSenderSub').innerText = data.sender;
                     document.getElementById('dedicatedBodyContent').innerText = data.body;
                     document.getElementById('dedicatedSignOff').innerText = data.sign;
+                    applyPhotoStyle(data);
 
                     currentYT = data.yt ? parseYouTube(String(data.yt)) : null;
                     if (currentYT) currentYT.start = parseInt(data.ytStart, 10) || 0;
@@ -1030,6 +1190,8 @@
         }
 
         window.addEventListener('load', () => {
+            renderCatGrid();
+            updatePhotoUI();
             loadSample('romantic');
             checkHashRoute();
         });
