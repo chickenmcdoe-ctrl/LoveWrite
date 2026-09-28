@@ -987,13 +987,12 @@
                 im.style.transform = `rotate(${tilt[i % 4]}deg)`;
                 return im;
             };
-            if (d.layout === 'sides') {
-                photos.forEach((src, i) => (i % 2 === 0 ? document.getElementById('colL') : document.getElementById('colR')).appendChild(mk(src, i, 'w-full aspect-square')));
-                ['colL', 'colR'].forEach(id => { const e = document.getElementById(id); if (e.children.length) e.classList.remove('hidden'); });
-            } else {
-                const col = document.getElementById(d.layout === 'left' ? 'colL' : 'colR');
-                photos.forEach((src, i) => col.appendChild(mk(src, i, 'w-20 h-20 sm:w-28 sm:h-28')));
-                col.classList.remove('hidden');
+            // Keep collage photos directly underneath the recipient name in the header
+            // when the letter is opened, instead of placing them beside the letter.
+            const col = document.getElementById('colTop');
+            if (col) {
+                photos.forEach((src, i) => col.appendChild(mk(src, i, 'w-20 h-20 sm:w-24 sm:h-24')));
+                if (col.children.length) col.classList.remove('hidden');
             }
         }
 
