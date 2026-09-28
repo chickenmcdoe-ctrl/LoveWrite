@@ -790,7 +790,7 @@
 
         function applyPhotoStyle(d) {
             const cont = document.getElementById('dedicatedCardContainer');
-            cont.style.backgroundImage = ''; cont.style.backgroundSize = ''; cont.style.backgroundPosition = '';
+            cont.style.backgroundImage = ''; cont.style.backgroundSize = ''; cont.style.backgroundPosition = ''; cont.style.backgroundRepeat = 'no-repeat';
             ['colTop', 'colBottom', 'colL', 'colR'].forEach(id => { const e = document.getElementById(id); e.innerHTML = ''; e.classList.add('hidden'); });
             const ok = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
             const photos = (Array.isArray(d.photos) ? d.photos : []).filter(x => typeof x === 'string' && ok.test(x)).slice(0, 4);
@@ -799,7 +799,10 @@
                 const a = (d.strength == null ? 65 : Math.min(95, Math.max(0, +d.strength))) / 100;
                 const t = TINTS[d.tint] || TINTS.pink;
                 cont.style.backgroundImage = `linear-gradient(160deg, rgba(${t},${a}), rgba(${t},${(a * 0.55).toFixed(2)})), url("${photos[0]}")`;
-                cont.style.backgroundSize = 'cover'; cont.style.backgroundPosition = 'center';
+                cont.style.backgroundSize = 'cover'; cont.style.backgroundPosition = 'center'; cont.style.backgroundRepeat = 'no-repeat';
+                cont.style.backgroundAttachment = 'local';
+                const letter = cont.querySelector('.dedicated-letter, #dedicatedLetter, .letter-content');
+                if (letter) { letter.style.backgroundColor = 'transparent'; letter.style.backgroundImage = 'none'; }
                 return;
             }
             const tilt = [-4, 3, -2, 5];
