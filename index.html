@@ -35,6 +35,10 @@
         }
     </script>
     <style>
+        /* Letter links: hide the main site immediately and show a loader until the letter is ready */
+        #letterLoader { display: none; }
+        html.letter-loading #letterLoader { display: flex; }
+        html.letter-loading #createView, html.letter-loading header { display: none !important; }
         body { font-family: 'Quicksand', sans-serif; }
         h1, h2, h3, .font-serif { font-family: 'Playfair Display', serif; }
         .font-hand { font-family: 'Caveat', cursive; }
@@ -61,8 +65,16 @@
             border: 2px dashed #d4c3a3;
         }
     </style>
+    <script>
+        if (location.hash.length > 1) document.documentElement.classList.add('letter-loading');
+    </script>
 </head>
 <body class="bg-gradient-to-br from-rose-50 via-pink-50 to-cupid-100 min-h-screen text-slate-800 antialiased selection:bg-rose-200 selection:text-rose-900">
+    <div id="letterLoader" class="fixed inset-0 z-[60] items-center justify-center flex-col bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100">
+        <div class="w-16 h-16 rounded-full bg-rose-500 flex items-center justify-center text-white text-2xl shadow-lg float-animation glow-box"><i class="fa-solid fa-heart"></i></div>
+        <p class="mt-5 font-serif italic text-rose-700">Opening your letter…</p>
+    </div>
+
 
     <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-rose-100 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -691,7 +703,19 @@
             updateSimulatorPreview();
         }
 
+        function stopLetterMusic() {
+            ytToken++;
+            ytWantsPlay = false; ytReady = false;
+            if (ytPlayer && ytPlayer.destroy) { try { ytPlayer.destroy(); } catch (e) {} }
+            ytPlayer = null; currentYT = null;
+            const wrap = document.getElementById('dedicatedYTWrap');
+            if (wrap) wrap.innerHTML = '<div id="dedicatedYTPlayer"></div>';
+            const audio = document.getElementById('dedicatedAudio');
+            if (audio) { audio.pause(); try { audio.currentTime = 0; } catch (e) {} }
+        }
+
         function goToCreatorHome() {
+            stopLetterMusic();
             window.location.hash = '';
             document.getElementById('createView').classList.remove('hidden');
             document.getElementById('dedicatedLetterView').classList.add('hidden');
@@ -930,12 +954,17 @@
         function isShortId(str) { return /^[a-z0-9]{6,12}$/i.test(str); }
 
         async function checkHashRoute() {
+            try { await renderHashRoute(); }
+            finally { document.documentElement.classList.remove('letter-loading'); }
+        }
+
+        async function renderHashRoute() {
             const hash = window.location.hash;
             if(hash && hash.length > 1) {
                 const encoded = hash.substring(1);
                 let raw = encoded;
                 if (isShortId(raw)) {
-                    raw = window.fbLoadLetter ? await window.fbLoadLetter(raw).catch(() => null) : null;
+                    raw = window.fbLoadLetter ? await Promise.race([window.fbLoadLetter(raw), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000))]).catch(() => null) : null;
                     if (!raw) { alertBox("Sorry, that letter couldn't be found."); return; }
                 }
                 const data = await decodeLetterPayload(raw);
@@ -1004,7 +1033,9 @@
             checkHashRoute();
         });
 
-        window.addEventListener('hashchange', checkHashRoute);
+        window.addEventListener('hashchange', () => {
+            if (location.hash.length <= 1) goToCreatorHome(); else checkHashRoute();
+        });
     </script>
 
     <script type="module">
