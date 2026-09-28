@@ -916,8 +916,8 @@
 
         function openMyPublishedLetter() {
             closeSuccessModal();
-            window.location.hash = '#' + currentActiveSlug;
-            checkHashRoute();
+            if (window.location.hash === '#' + currentActiveSlug) checkHashRoute();
+            else window.location.hash = '#' + currentActiveSlug;
         }
 
         function openDedicatedLetter() {
@@ -954,6 +954,7 @@
         function isShortId(str) { return /^[a-z0-9]{6,12}$/i.test(str); }
 
         async function checkHashRoute() {
+            if (location.hash.length > 1) document.documentElement.classList.add('letter-loading');
             try { await renderHashRoute(); }
             finally { document.documentElement.classList.remove('letter-loading'); }
         }
