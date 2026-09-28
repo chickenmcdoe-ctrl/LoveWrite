@@ -476,7 +476,7 @@
                     </div>
 
                     <!-- Audio Element -->
-                    <audio id="dedicatedAudio" loop>
+                    <audio id="dedicatedAudio" loop preload="auto">
                         <source src="" id="dedicatedAudioSource">
                     </audio>
 
@@ -510,12 +510,31 @@
                             Message loading...
                         </div>
 
+                        <div id="dedicatedMusicPanel" class="hidden mb-6 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 shadow-sm">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center text-rose-500 shadow-sm">
+                                    <i class="fa-solid fa-music"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-rose-500">Now Playing</p>
+                                    <p id="dedicatedMusicName" class="text-sm font-semibold text-slate-700 truncate">Background music</p>
+                                </div>
+                            </div>
+                            <audio id="dedicatedMusicControls" controls loop preload="metadata" class="w-full"></audio>
+                        </div>
+
                         <div class="flex items-center justify-between pt-4 border-t border-rose-100">
                             <span id="dedicatedSignOff" class="font-serif font-bold text-rose-600 text-sm">Forever Yours ❤️</span>
-                            <button type="button" id="dedicatedCelebrateBtn" onclick="triggerConfetti()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-4 py-2 rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                                <span>Celebrate</span>
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="closeDedicatedLetter()" class="bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 px-4 py-2 rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                                    <i class="fa-solid fa-envelope"></i>
+                                    <span>Close Letter</span>
+                                </button>
+                                <button type="button" id="dedicatedCelebrateBtn" onclick="triggerConfetti()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-4 py-2 rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span>Celebrate</span>
+                                </button>
+                            </div>
                         </div></div><div id="colR" class="hidden flex-col gap-4 w-14 sm:w-24 shrink-0 pt-10"></div></div><div id="colBottom" class="hidden flex-wrap justify-center gap-4 mt-6"></div>
                     </div>
                 </div>
@@ -676,10 +695,20 @@
 
         function playLetterMusic() {
             const audio = document.getElementById('dedicatedAudio');
-            if (!audio || !audio.src) return;
-            audio.currentTime = 0;
+            const source = document.getElementById('dedicatedAudioSource');
+            if (!audio || !source || !source.src) return;
+
+            audio.loop = true;
+            try { audio.currentTime = 0; } catch (e) {}
+
             const attempt = audio.play();
-            if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {});
+            if (attempt && typeof attempt.catch === 'function') {
+                attempt.catch((err) => {
+                    console.warn('Music playback was blocked:', err);
+                    const btn = document.getElementById('dedicatedMusicPlayBtn');
+                    if (btn) btn.classList.remove('hidden');
+                });
+            }
         }
 
         function stopLetterMusic() {
@@ -1244,7 +1273,18 @@
             const env = document.getElementById('dedicatedEnvelopeState');
             const lettr = document.getElementById('dedicatedLetterState');
             const audio = document.getElementById('dedicatedAudio');
-            playLetterMusic();
+            const panel = document.getElementById('dedicatedMusicPanel');
+            const controls = document.getElementById('dedicatedMusicControls');
+            const source = document.getElementById('dedicatedAudioSource');
+
+            if (panel && controls && source && source.src) {
+                controls.src = source.src;
+                controls.loop = true;
+                panel.classList.remove('hidden');
+                playLetterMusic();
+                controls.play().catch(() => {});
+            }
+
             env.style.opacity = '0';
             env.style.transform = 'scale(0.95)';
             setTimeout(() => {
@@ -1256,6 +1296,31 @@
                     triggerConfetti();
                 }, 50);
             }, 300);
+        }
+
+        function closeDedicatedLetter() {
+            const env = document.getElementById('dedicatedEnvelopeState');
+            const lettr = document.getElementById('dedicatedLetterState');
+            const panel = document.getElementById('dedicatedMusicPanel');
+            const controls = document.getElementById('dedicatedMusicControls');
+
+            if (controls) {
+                controls.pause();
+                controls.currentTime = 0;
+                controls.removeAttribute('src');
+                controls.load();
+            }
+            if (panel) panel.classList.add('hidden');
+            stopLetterMusic();
+
+            lettr.style.opacity = '0';
+            lettr.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                lettr.classList.add('hidden');
+                env.classList.remove('hidden');
+                env.style.opacity = '1';
+                env.style.transform = 'scale(1)';
+            }, 250);
         }
 
         function triggerConfetti() {
@@ -1333,6 +1398,20 @@
                     if (data.music) {
                         audioSource.src = data.music;
                         audio.load();
+                        const musicPanel = document.getElementById('dedicatedMusicPanel');
+                        const musicName = document.getElementById('dedicatedMusicName');
+                        if (musicName) {
+                            const known = {
+                                'music/My-love-mine-all-mine.mp3': 'My Love Mine All Mine — Mitski',
+                                'music/Glue-song.mp3': 'Glue Song — beabadoobee',
+                                'music/From-the-start.mp3': 'From The Start — Laufey',
+                                'music/Falling-behind.mp3': 'Falling Behind — Laufey',
+                                'music/Love.mp3': 'love. — wave to earth'
+                            };
+                            const key = new URL(data.music, window.location.href).pathname.split('/').slice(-2).join('/');
+                            musicName.textContent = known[key] || 'Background music';
+                        }
+                        if (musicPanel) musicPanel.classList.add('hidden');
                     } else {
                         audioSource.removeAttribute('src');
                         audio.load();
