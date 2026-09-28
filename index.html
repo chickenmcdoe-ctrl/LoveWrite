@@ -311,10 +311,10 @@
                             </label>
                             <select id="photoLayout" onchange="updatePhotoUI()" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-white">
                                 <option value="none">No photos</option>
-                                <option value="background">🖼️ Photo background with colour tint</option>
-                                <option value="left">📸 Photo collage to the left of the letter</option>
-                                <option value="right">📸 Photo collage to the right of the letter</option>
-                                <option value="sides">📸 Photo collage on both sides</option>
+                                <option value="background">🖼️ One photo as the background</option>
+                                <option value="top">📸 Two-photo collage below the recipient</option>
+                                <option value="bottom">📸 Two-photo collage below the sign-off</option>
+                                <option value="both">📸 Two collages — top &amp; bottom</option>
                             </select>
                             <div id="photoControls" class="hidden space-y-4">
                                 <div>
@@ -322,7 +322,7 @@
                                     <span id="photoCount" class="text-xs text-slate-500 ml-2">0/4</span>
                                     <input type="file" id="photoInput" accept="image/*" multiple class="hidden" onchange="handlePhotoFiles(event)">
                                     <div id="photoThumbs" class="flex flex-wrap gap-3 mt-3"></div>
-                                    <p class="text-xs text-slate-500 mt-2">Up to 4 photos. A background uses the first one.</p>
+                                    <p class="text-xs text-slate-500 mt-2">Background uses 1 photo. Top or bottom uses 2 photos side by side. Both uses 4 photos.</p>
                                 </div>
                                 <div id="photoBgControls" class="hidden grid grid-cols-2 gap-3">
                                     <div>
@@ -382,24 +382,22 @@
 
                             <!-- Preview Opened Letter -->
                             <div id="simLetter" class="hidden relative z-20 w-full max-w-sm bg-white/95 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-rose-200 text-left transform scale-95 opacity-0 transition-all duration-700 max-h-[480px] overflow-y-auto">
-                                <div class="flex gap-2 items-start">
-                                    <div id="simPhotoLeft" class="hidden flex-col gap-2 w-12 shrink-0 pt-2"></div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex items-center justify-between mb-4 border-b border-rose-100 pb-3">
-                                            <div class="flex items-center space-x-3">
-                                                <img id="simLetterAvatar" src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-full object-cover border-2 border-rose-300" alt="Avatar" crossorigin="anonymous">
-                                                <div>
-                                                    <h4 id="simRecipientDisplay" class="font-serif font-bold text-slate-800">My Dearest</h4>
-                                                    <span id="simLockTag" class="text-xs text-rose-500 font-semibold"><i class="fa-solid fa-lock text-xs mr-1"></i> Private Love Letter</span>
-                                                    <div id="simPhotoTop" class="hidden flex-wrap justify-start gap-2 mt-2"></div>
-                                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between mb-4 border-b border-rose-100 pb-3">
+                                        <div class="flex items-center space-x-3">
+                                            <img id="simLetterAvatar" src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-full object-cover border-2 border-rose-300" alt="Avatar" crossorigin="anonymous">
+                                            <div>
+                                                <h4 id="simRecipientDisplay" class="font-serif font-bold text-slate-800">My Dearest</h4>
+                                                <span id="simLockTag" class="text-xs text-rose-500 font-semibold"><i class="fa-solid fa-lock text-xs mr-1"></i> Private Love Letter</span>
                                             </div>
-                                            <button type="button" onclick="toggleSimEnvelope()" class="text-slate-400 hover:text-slate-600 text-xs bg-rose-50 px-2 py-1 rounded-md cursor-pointer">Close</button>
                                         </div>
+                                        <button type="button" onclick="toggleSimEnvelope()" class="text-slate-400 hover:text-slate-600 text-xs bg-rose-50 px-2 py-1 rounded-md cursor-pointer">Close</button>
+                                    </div>
+                                    <div id="simPhotoTop" class="hidden flex flex-wrap justify-center gap-2 mb-4"></div>
 
-                                        <div id="simBodyDisplay" class="text-slate-700 font-medium text-xs leading-relaxed mb-4 whitespace-pre-line italic font-serif">
-                                            From the very first moment...
-                                        </div>
+                                    <div id="simBodyDisplay" class="text-slate-700 font-medium text-xs leading-relaxed mb-4 whitespace-pre-line italic font-serif">
+                                        From the very first moment...
+                                    </div>
 
                                         <div id="simMusicPanel" class="hidden mb-4 rounded-2xl border border-rose-200 bg-rose-50/80 p-3 shadow-sm">
                                             <div class="flex items-center gap-2 mb-2">
@@ -417,10 +415,8 @@
                                         <div class="flex items-center justify-between pt-3 border-t border-rose-100">
                                             <span id="simSignDisplay" class="font-serif font-bold text-rose-600 text-xs">Forever Yours ❤️</span>
                                         </div>
+                                        <div id="simPhotoBottom" class="hidden flex flex-wrap justify-center gap-2 mt-4"></div>
                                     </div>
-                                    <div id="simPhotoRight" class="hidden flex-col gap-2 w-12 shrink-0 pt-5"></div>
-                                </div>
-                                <div id="simPhotoBottom" class="hidden flex-wrap justify-center gap-2 mt-4"></div>
                             </div>
                         </div>
                     </div>
@@ -521,16 +517,16 @@
 
                     <!-- Opened Letter State -->
                     <div id="dedicatedLetterState" class="hidden opacity-0 transform scale-95 transition-all duration-700 relative z-20 w-full bg-white/95 backdrop-blur-md p-8 sm:p-10 rounded-3xl shadow-2xl border border-rose-200 text-left"><div class="flex gap-3 items-start"><div id="colL" class="hidden flex-col gap-4 w-14 sm:w-24 shrink-0 pt-4"></div><div class="flex-1 min-w-0">
-                        <div class="flex items-center space-x-4 mb-6 border-b border-rose-100 pb-4">
+                        <div class="flex items-center space-x-4 mb-4 border-b border-rose-100 pb-4">
                             <img id="dedicatedLetterAvatar" src="" class="w-14 h-14 rounded-full object-cover border-2 border-rose-300 shadow-sm" alt="Avatar" crossorigin="anonymous">
                             <div>
                                 <h3 id="dedicatedRecipientTitle" class="text-xl font-serif font-bold text-slate-800">My Dearest</h3>
                                 <span class="text-xs text-rose-500 font-semibold flex items-center mt-0.5">
                                     <i class="fa-solid fa-lock mr-1"></i> Private Message from <span id="dedicatedSenderSub" class="font-bold ml-1"></span>
                                 </span>
-                                <div id="colTop" class="hidden flex-wrap justify-start gap-3 mt-2"></div>
                             </div>
                         </div>
+                        <div id="colTop" class="hidden flex flex-wrap justify-center gap-3 mb-5"></div>
 
                         <div id="dedicatedBodyContent" class="text-slate-700 font-serif text-base leading-relaxed mb-6 whitespace-pre-line italic">
                             Message loading...
@@ -941,7 +937,9 @@
         }
 
         async function handlePhotoFiles(e) {
-            const files = [...e.target.files].slice(0, 4 - letterPhotos.length);
+            const layout = document.getElementById('photoLayout')?.value || 'none';
+            const maxPhotos = layout === 'background' ? 1 : (layout === 'both' ? 4 : 2);
+            const files = [...e.target.files].slice(0, Math.max(0, maxPhotos - letterPhotos.length));
             for (const f of files) { try { letterPhotos.push(await shrinkImage(f, 800, 0.6)); } catch (err) {} }
             e.target.value = '';
             renderPhotoThumbs();
@@ -958,7 +956,9 @@
                 b.onclick = () => { letterPhotos.splice(i, 1); renderPhotoThumbs(); };
                 w.append(im, b); box.appendChild(w);
             });
-            document.getElementById('photoCount').textContent = letterPhotos.length + '/4';
+            const layout = document.getElementById('photoLayout')?.value || 'none';
+            const maxUsed = layout === 'background' ? 1 : (layout === 'both' ? 4 : 2);
+            document.getElementById('photoCount').textContent = Math.min(letterPhotos.length, maxUsed) + '/' + maxUsed;
             updateSimulatorPreview();
             applySimulatorPhotoStyle();
         }
@@ -970,6 +970,7 @@
             const ok = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
             const photos = (Array.isArray(d.photos) ? d.photos : []).filter(x => typeof x === 'string' && ok.test(x)).slice(0, 4);
             if (!photos.length || !d.layout || d.layout === 'none') return;
+
             if (d.layout === 'background') {
                 const a = (d.strength == null ? 65 : Math.min(95, Math.max(0, +d.strength))) / 100;
                 const t = TINTS[d.tint] || TINTS.pink;
@@ -980,19 +981,26 @@
                 if (letter) { letter.style.backgroundColor = 'transparent'; letter.style.backgroundImage = 'none'; }
                 return;
             }
-            const tilt = [-4, 3, -2, 5];
+
+            const tilt = [-2, 2, -1, 1];
             const mk = (src, i, cls) => {
                 const im = document.createElement('img');
-                im.src = src; im.className = cls + ' object-cover rounded-lg border-4 border-white shadow-lg';
+                im.src = src; im.className = cls + ' object-cover rounded-md border-2 border-white shadow-md';
                 im.style.transform = `rotate(${tilt[i % 4]}deg)`;
                 return im;
             };
-            // Keep collage photos directly underneath the recipient name in the header
-            // when the letter is opened, instead of placing them beside the letter.
-            const col = document.getElementById('colTop');
-            if (col) {
-                photos.forEach((src, i) => col.appendChild(mk(src, i, 'w-20 h-20 sm:w-24 sm:h-24')));
+            const addCollage = (id, items) => {
+                const col = document.getElementById(id);
+                if (!col) return;
+                items.forEach((src, i) => col.appendChild(mk(src, i, 'w-24 h-16 sm:w-28 sm:h-20')));
                 if (col.children.length) col.classList.remove('hidden');
+            };
+
+            if (d.layout === 'top') addCollage('colTop', photos.slice(0, 2));
+            else if (d.layout === 'bottom') addCollage('colBottom', photos.slice(0, 2));
+            else if (d.layout === 'both') {
+                addCollage('colTop', photos.slice(0, 2));
+                addCollage('colBottom', photos.slice(2, 4));
             }
         }
 
@@ -1001,8 +1009,7 @@
             const simContainer = document.getElementById('simContainer');
             if (!sim || !simContainer) return;
             const ids = ['simPhotoTop', 'simPhotoBottom', 'simPhotoLeft', 'simPhotoRight'];
-            ids.forEach(id => { const e = document.getElementById(id); e.innerHTML = ''; e.classList.add('hidden'); });
-            // The photo template background belongs to the preview/page, not the letter card itself.
+            ids.forEach(id => { const e = document.getElementById(id); if (e) { e.innerHTML = ''; e.classList.add('hidden'); } });
             sim.style.backgroundImage = '';
             sim.style.backgroundSize = '';
             sim.style.backgroundPosition = '';
@@ -1026,7 +1033,7 @@
                 return;
             }
 
-            const tilt = [-4, 3, -2, 5];
+            const tilt = [-2, 2, -1, 1];
             const mk = (src, i, cls) => {
                 const im = document.createElement('img');
                 im.src = src;
@@ -1034,20 +1041,18 @@
                 im.style.transform = `rotate(${tilt[i % 4]}deg)`;
                 return im;
             };
+            const addCollage = (id, items) => {
+                const col = document.getElementById(id);
+                if (!col) return;
+                items.forEach((src, i) => col.appendChild(mk(src, i, 'w-20 h-14 sm:w-24 sm:h-16')));
+                if (col.children.length) col.classList.remove('hidden');
+            };
 
-            if (layout === 'sides') {
-                photos.forEach((src, i) => {
-                    const col = document.getElementById(i % 2 === 0 ? 'simPhotoLeft' : 'simPhotoRight');
-                    col.appendChild(mk(src, i, 'w-full aspect-square'));
-                });
-                ['simPhotoLeft', 'simPhotoRight'].forEach(id => {
-                    const e = document.getElementById(id);
-                    if (e.children.length) e.classList.remove('hidden');
-                });
-            } else {
-                const col = document.getElementById(layout === 'left' ? 'simPhotoLeft' : 'simPhotoRight');
-                photos.forEach((src, i) => col.appendChild(mk(src, i, 'w-10 h-10 sm:w-12 sm:h-12')));
-                col.classList.remove('hidden');
+            if (layout === 'top') addCollage('simPhotoTop', photos.slice(0, 2));
+            else if (layout === 'bottom') addCollage('simPhotoBottom', photos.slice(0, 2));
+            else if (layout === 'both') {
+                addCollage('simPhotoTop', photos.slice(0, 2));
+                addCollage('simPhotoBottom', photos.slice(2, 4));
             }
         }
 
@@ -1327,7 +1332,10 @@
                 if (publishBtn) { publishBtn.disabled = true; publishBtn.classList.add('opacity-70'); }
 
                 const layout = document.getElementById('photoLayout').value;
-                const photos = layout === 'none' ? [] : (layout === 'background' ? letterPhotos.slice(0, 1) : letterPhotos);
+                const photos = layout === 'none' ? []
+                    : layout === 'background' ? letterPhotos.slice(0, 1)
+                    : layout === 'both' ? letterPhotos.slice(0, 4)
+                    : letterPhotos.slice(0, 2);
                 if (layout !== 'none' && !photos.length) { alertBox('Add at least one photo, or set the photo template to "No photos".'); return; }
                 if (photos.join('').length > 800000) { alertBox('Those photos are too large. Try fewer or smaller photos.'); return; }
 
