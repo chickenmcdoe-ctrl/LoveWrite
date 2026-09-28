@@ -327,13 +327,13 @@
                                 <div id="photoBgControls" class="hidden grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="block text-xs font-bold text-slate-600 mb-1">Colour tint</label>
-                                        <select id="photoTint" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white">
+                                        <select id="photoTint" onchange="applySimulatorPhotoStyle()" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white">
                                             <option value="pink">Pink</option><option value="blue">Blue</option><option value="purple">Purple</option><option value="gold">Gold</option><option value="white">White</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-600 mb-1">Tint strength</label>
-                                        <input type="range" id="photoStrength" min="20" max="90" value="65" class="w-full accent-rose-500">
+                                        <input type="range" id="photoStrength" min="20" max="90" value="65" oninput="applySimulatorPhotoStyle()" class="w-full accent-rose-500">
                                     </div>
                                 </div>
                             </div>
@@ -547,6 +547,10 @@
                             </div>
                         </div>
 
+                        <div id="dedicatedLetterExpiry" class="mt-6 pt-4 border-t border-rose-100 text-center text-xs font-semibold text-rose-500" aria-live="polite">
+                            <i class="fa-solid fa-clock mr-1"></i><span id="dedicatedExpiryCountdown">This letter expires in 24h 0m.</span>
+                        </div>
+
                         <div class="flex items-center justify-between pt-4 border-t border-rose-100">
                             <span id="dedicatedSignOff" class="font-serif font-bold text-rose-600 text-sm">Forever Yours ❤️</span>
                             <div class="flex items-center gap-2">
@@ -568,9 +572,10 @@
                 </div>
 
                 <!-- Footer Banner -->
-                <div class="bg-white/90 border-t border-rose-100 py-3 px-6 text-center text-xs font-semibold text-slate-500 flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-shield-cat text-rose-500"></i>
-                    <span>Private link: only people you share it with can open it</span>
+                <div class="bg-white/90 border-t border-rose-100 py-3 px-6 text-center text-xs font-semibold text-slate-500 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-shield-cat text-rose-500"></i><span>Private link: only people you share it with can open it</span></span>
+                    <span class="hidden sm:inline text-rose-300">•</span>
+                    <span id="dedicatedExpiryWarning" class="hidden"></span>
                 </div>
             </div>
         </div>
@@ -756,14 +761,45 @@
             const audio = document.getElementById('dedicatedAudio');
             if (audio) {
                 audio.pause();
-                audio.currentTime = 0;
-                audio.removeAttribute('src');
-                audio.load();
+                try { audio.currentTime = 0; } catch (e) {}
+                // Keep the source loaded so closing and reopening the letter
+                // can start the same song again from the beginning.
             }
         }
 
 
         let currentActiveSlug = '';
+        let expiryTimer = null;
+
+        function stopExpiryTimer() {
+            if (expiryTimer) { clearInterval(expiryTimer); expiryTimer = null; }
+        }
+
+        function startExpiryTimer(expiresAt) {
+            stopExpiryTimer();
+            const countdown = document.getElementById('dedicatedExpiryCountdown');
+            const box = document.getElementById('dedicatedLetterExpiry');
+            if (!countdown || !expiresAt) return;
+
+            const update = () => {
+                const remaining = new Date(expiresAt).getTime() - Date.now();
+                if (!Number.isFinite(remaining) || remaining <= 0) {
+                    countdown.innerHTML = '<i class="fa-solid fa-hourglass-end mr-1"></i>This letter has expired.';
+                    if (box) box.classList.remove('text-rose-500');
+                    if (box) box.classList.add('text-slate-500');
+                    stopExpiryTimer();
+                    return;
+                }
+
+                const totalMinutes = Math.floor(remaining / 60000);
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+                countdown.innerHTML = `<i class="fa-solid fa-clock mr-1"></i>This letter expires in ${hours}h ${minutes}m.`;
+            };
+
+            update();
+            expiryTimer = setInterval(update, 1000);
+        }
 
         // Exact flower specifications for all 5 templates
         const themes = {
@@ -1014,6 +1050,7 @@
         }
 
         function goToCreatorHome() {
+            stopExpiryTimer();
             stopLetterMusic();
             window.location.hash = '';
             document.getElementById('createView').classList.remove('hidden');
@@ -1460,6 +1497,7 @@
         }
 
         function showExpiredLetter() {
+            stopExpiryTimer();
             currentActiveSlug = '';
             document.getElementById('createView').classList.add('hidden');
             document.getElementById('successModal').classList.add('hidden');
@@ -1492,6 +1530,7 @@
                 const data = await decodeLetterPayload(raw);
                 if(data) {
                     currentActiveSlug = encoded;
+                    startExpiryTimer(storedLetter?.expires_at || null);
                     document.getElementById('createView').classList.add('hidden');
                     document.getElementById('successModal').classList.add('hidden');
                     document.querySelector('header').classList.add('hidden');
