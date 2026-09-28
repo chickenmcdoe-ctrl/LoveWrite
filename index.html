@@ -72,7 +72,6 @@
                 </div>
                 <div>
                     <span class="text-2xl font-serif font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">Cupid Hub</span>
-                    <p class="text-xs text-slate-500 font-medium">5-Template Love Letter Publisher</p>
                 </div>
             </div>
             <nav class="flex items-center space-x-2">
@@ -88,16 +87,9 @@
 
         <div id="createView" class="space-y-12">
             <div class="text-center max-w-3xl mx-auto">
-                <span class="inline-flex items-center space-x-2 bg-rose-100 text-rose-700 px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase mb-4 shadow-sm">
-                    <i class="fa-solid fa-seedling text-rose-500"></i>
-                    <span>5 Detailed Floral & Handwritten Templates</span>
-                </span>
                 <h1 class="text-4xl sm:text-6xl font-serif font-bold text-slate-900 tracking-tight leading-tight mb-4">
                     Choose Your Template & Publish Your <span class="bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent italic">Love Letter</span>
                 </h1>
-                <p class="text-slate-600 text-base sm:text-lg">
-                    Select from 5 beautifully themed templates below with specific flowers, handwritten styles, or twilight aesthetics!
-                </p>
             </div>
 
             <!-- 5 Templates Quick Selector Grid -->
@@ -189,9 +181,9 @@
                         <!-- Cat / Companion Photo Selection -->
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">
-                                <i class="fa-solid fa-cat text-rose-500 mr-2"></i> Select Companion Photo / Sticker
+                                <i class="fa-solid fa-cat text-rose-500 mr-2"></i> Select Companion Photo / Sticker or Upload
                             </label>
-                            <div class="grid grid-cols-3 gap-3">
+                            <div class="grid grid-cols-3 gap-3 mb-4">
                                 <label class="cursor-pointer border-2 rounded-xl p-3 text-center transition border-rose-500 bg-rose-50/50 flex flex-col items-center justify-center cat-option" onclick="selectCatPreset(0)">
                                     <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&auto=format&fit=crop&q=80" class="w-16 h-16 object-cover rounded-full mb-2 shadow-sm" alt="Cat 1" crossorigin="anonymous">
                                     <span class="text-xs font-bold text-slate-700">Fluffy Kitten</span>
@@ -208,13 +200,26 @@
                             <input type="hidden" id="selectedCatUrl" value="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80">
                         </div>
 
-                        <!-- Custom Image URL -->
+                        <!-- Drag and Drop / Click Upload Area -->
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">
-                                <i class="fa-solid fa-image text-rose-500 mr-2"></i> Or Custom Image URL
+                                <i class="fa-solid fa-cloud-arrow-up text-rose-500 mr-2"></i> Custom Picture (Drag & Drop on PC, or Click to Select)
                             </label>
-                            <input type="url" id="customImgUrl" placeholder="https://example.com/photo.jpg" oninput="updateCustomCat(this.value)"
-                                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-rose-50/30 text-sm">
+                            <div id="dropZone" 
+                                onclick="document.getElementById('fileInput').click()"
+                                ondragover="handleDragOver(event)" 
+                                ondragleave="handleDragLeave(event)" 
+                                ondrop="handleFileDrop(event)"
+                                class="border-2 border-dashed border-rose-300 hover:border-rose-500 bg-rose-50/40 hover:bg-rose-50 rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2">
+                                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-xl shadow-sm">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-700">Click to browse or drop image here</p>
+                                    <p class="text-xs text-slate-400">Supports JPG, PNG, GIF</p>
+                                </div>
+                                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                            </div>
                         </div>
 
                         <!-- Background Music -->
@@ -580,8 +585,8 @@
 
         function selectCatPreset(index) {
             const url = catPresets[index];
-            document.getElementById('selectedCatUrl').value = url;
-            document.getElementById('customImgUrl').value = '';
+            const catUrlInput = document.getElementById('selectedCatUrl');
+            if(catUrlInput) catUrlInput.value = url;
             
             const options = document.querySelectorAll('.cat-option');
             options.forEach((opt, i) => {
@@ -597,8 +602,9 @@
         }
 
         function updateCustomCat(url) {
-            if(url.trim() !== '') {
-                document.getElementById('selectedCatUrl').value = url;
+            if(url && url.trim() !== '') {
+                const catUrlInput = document.getElementById('selectedCatUrl');
+                if(catUrlInput) catUrlInput.value = url;
                 document.querySelectorAll('.cat-option').forEach(opt => {
                     opt.classList.remove('border-rose-500', 'bg-rose-50/50');
                     opt.classList.add('border-slate-200');
@@ -607,261 +613,5 @@
             }
         }
 
-        function loadSample(type) {
-            const themeSelect = document.getElementById('themeSelect');
-            if(type === 'romantic') {
-                themeSelect.value = 'pink';
-                document.getElementById('senderName').value = "Julian";
-                document.getElementById('recipientName').value = "Eleanor";
-                document.getElementById('letterBody').value = "Surrounded by blooming pink roses, delicate white lilies, and vibrant spring tulips, my heart beats only for you. Every single day with you feels like poetry written in a blossoming garden.";
-                document.getElementById('signOff').value = "Forever & Always, Julian 🌹🌷🌸";
-                selectCatPreset(0);
-            } else if(type === 'blue') {
-                themeSelect.value = 'blue';
-                document.getElementById('senderName').value = "Kai";
-                document.getElementById('recipientName').value = "Marina";
-                document.getElementById('letterBody').value = "Filled with serene blue lotus blossoms, graceful blue hydrangeas, and charming blue cornflowers, your calming presence brings immense peace to my soul. Here is an ocean of blue flowers dedicated entirely to our love.";
-                document.getElementById('signOff').value = "Yours across the blue tides, Kai 🪷💠💙";
-                selectCatPreset(1);
-            } else if(type === 'purple') {
-                themeSelect.value = 'purple';
-                document.getElementById('senderName').value = "Aiden";
-                document.getElementById('recipientName').value = "Celeste";
-                document.getElementById('letterBody').value = "Amidst fragrant purple lavender fields, majestic purple iris flowers, and sweet blossoming lilac, you are my absolute dream come true. Your magic enchants my entire world.";
-                document.getElementById('signOff').value = "With eternal devotion, Aiden 🪻💜🔮";
-                selectCatPreset(2);
-            } else if(type === 'handwritten') {
-                themeSelect.value = 'handwritten';
-                document.getElementById('senderName').value = "Oliver";
-                document.getElementById('recipientName').value = "Charlotte";
-                document.getElementById('letterBody').value = "Dearest Charlotte,\n\nI sat down with aged parchment and ink because digital typing could never truly capture how deeply I adore you. With every hand-drawn flower sketched along the margin, I send you my entire heart.\n\nAlways yours,";
-                document.getElementById('signOff').value = "Oliver ✍️🌿📜";
-                selectCatPreset(0);
-            } else if(type === 'golden') {
-                themeSelect.value = 'golden';
-                document.getElementById('senderName').value = "Gabriel";
-                document.getElementById('recipientName').value = "Aurora";
-                document.getElementById('letterBody').value = "Underneath golden twilight skies and glowing starlight blossoms, you shine brighter than any constellation in our universe. You are my greatest treasure.";
-                document.getElementById('signOff').value = "With golden rays of love, Gabriel ✨🌻🌟";
-                selectCatPreset(1);
-            }
-            updateThemeStyle(themeSelect.value);
-            updateSimulatorPreview();
-        }
-
-        function updateSimulatorPreview() {
-            const recipient = document.getElementById('recipientName').value || "Recipient";
-            const body = document.getElementById('letterBody').value;
-            const sign = document.getElementById('signOff').value;
-            const imgUrl = document.getElementById('selectedCatUrl').value;
-            const themeVal = document.getElementById('themeSelect').value;
-
-            document.getElementById('simTitle').innerText = 'A Special Message For ' + recipient;
-            document.getElementById('simAvatar').src = imgUrl;
-            document.getElementById('simLetterAvatar').src = imgUrl;
-            document.getElementById('simRecipientDisplay').innerText = 'My Dearest ' + recipient;
-            document.getElementById('simBodyDisplay').innerText = body;
-            document.getElementById('simSignDisplay').innerText = sign;
-
-            const simLetterEl = document.getElementById('simLetter');
-            if(themeVal === 'handwritten') {
-                simLetterEl.className = "hidden relative z-20 w-full max-w-sm handwritten-paper p-6 rounded-3xl shadow-2xl text-left transform scale-95 opacity-0 transition-all duration-700 max-h-[480px] overflow-y-auto";
-                document.getElementById('simBodyDisplay').className = "text-amber-950 font-hand text-xl leading-relaxed mb-4 whitespace-pre-line";
-            } else {
-                simLetterEl.className = "hidden relative z-20 w-full max-w-sm bg-white/95 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-rose-200 text-left transform scale-95 opacity-0 transition-all duration-700 max-h-[480px] overflow-y-auto";
-                document.getElementById('simBodyDisplay').className = "text-slate-700 font-medium text-xs leading-relaxed mb-4 whitespace-pre-line italic font-serif";
-            }
-        }
-
-        ['senderName', 'recipientName', 'letterBody', 'signOff'].forEach(id => {
-            document.getElementById(id).addEventListener('input', updateSimulatorPreview);
-        });
-
-        function toggleSimEnvelope() {
-            const env = document.getElementById('simEnvelope');
-            const letState = document.getElementById('simLetter');
-
-            if(env.classList.contains('hidden')) {
-                letState.classList.add('opacity-0', 'scale-95');
-                setTimeout(() => {
-                    letState.classList.add('hidden');
-                    env.classList.remove('hidden', 'opacity-0', 'scale-90', 'pointer-events-none', 'absolute');
-                }, 300);
-            } else {
-                env.classList.add('opacity-0', 'scale-90', 'pointer-events-none', 'absolute');
-                setTimeout(() => {
-                    env.classList.add('hidden');
-                    letState.classList.remove('hidden');
-                    setTimeout(() => {
-                        letState.classList.remove('opacity-0', 'scale-95');
-                        letState.classList.add('opacity-100', 'scale-100');
-                    }, 50);
-                }, 300);
-                triggerConfetti();
-            }
-        }
-
-        function handlePublish(event) {
-            event.preventDefault();
-            const sender = document.getElementById('senderName').value.trim();
-            const recipient = document.getElementById('recipientName').value.trim();
-            const body = document.getElementById('letterBody').value.trim();
-            const signOff = document.getElementById('signOff').value.trim();
-            const catUrl = document.getElementById('selectedCatUrl').value.trim();
-            const musicUrl = document.getElementById('bgMusic').value;
-            const theme = document.getElementById('themeSelect').value;
-
-            const letterObj = {
-                sender: sender,
-                recipient: recipient,
-                body: body,
-                signOff: signOff,
-                catUrl: catUrl,
-                musicUrl: musicUrl,
-                theme: theme,
-                date: new Date().toLocaleDateString()
-            };
-
-            const encoded = encodeLetterPayload(letterObj);
-            currentActiveSlug = encoded;
-            const fullLink = window.location.origin + window.location.pathname + '#secret/' + encoded;
-
-            document.getElementById('generatedLinkInput').value = fullLink;
-            document.getElementById('successModal').classList.remove('hidden');
-            triggerConfetti();
-        }
-
-        function copyGeneratedLink() {
-            const input = document.getElementById('generatedLinkInput');
-            input.select();
-            try {
-                document.execCommand('copy');
-                alert("Success! Private link copied to clipboard.");
-            } catch (err) {
-                alert("Failed to copy link.");
-            }
-        }
-
-        function closeSuccessModal() {
-            document.getElementById('successModal').classList.add('hidden');
-        }
-
-        function openMyPublishedLetter() {
-            closeSuccessModal();
-            window.location.hash = 'secret/' + currentActiveSlug;
-        }
-
-        function handleRouting() {
-            const hash = window.location.hash;
-            const createView = document.getElementById('createView');
-            const dedicatedView = document.getElementById('dedicatedLetterView');
-            const headerNav = document.querySelector('header');
-            const successModal = document.getElementById('successModal');
-
-            successModal.classList.add('hidden');
-
-            if(hash.startsWith('#secret/')) {
-                const encodedData = hash.replace('#secret/', '');
-                const letter = decodeLetterPayload(encodedData);
-
-                if(!letter) {
-                    alert("This love letter link is invalid or corrupted.");
-                    goToCreatorHome();
-                    return;
-                }
-
-                createView.classList.add('hidden');
-                headerNav.classList.add('hidden');
-                dedicatedView.classList.remove('hidden');
-
-                const theme = themes[letter.theme || 'pink'];
-                const cardContainer = document.getElementById('dedicatedCardContainer');
-                const floatingIcons = document.getElementById('dedicatedFloatingIcons');
-                const openBtn = document.getElementById('dedicatedOpenBtn');
-                const dedicatedLetterState = document.getElementById('dedicatedLetterState');
-
-                cardContainer.className = `relative w-full ${theme.containerBg} rounded-3xl shadow-2xl border-4 ${theme.border} overflow-hidden flex flex-col min-h-[550px] transition-all duration-500`;
-                openBtn.className = `w-full font-bold py-4 rounded-full shadow-lg flex items-center justify-center space-x-3 transition transform hover:scale-105 text-base cursor-pointer z-20 ${theme.buttonBg}`;
-
-                if(letter.theme === 'handwritten') {
-                    floatingIcons.innerHTML = `
-                        <div class="absolute top-8 left-6 float-animation">${theme.floatingIcons[0]}</div>
-                        <div class="absolute bottom-10 right-8 float-animation" style="animation-delay: 2s;">${theme.floatingIcons[1]}</div>
-                        <div class="absolute top-1/2 right-6 float-animation" style="animation-delay: 1s;">${theme.floatingIcons[2]}</div>
-                    `;
-                    dedicatedLetterState.className = "hidden opacity-0 transform scale-95 transition-all duration-700 relative z-20 w-full handwritten-paper p-8 sm:p-10 rounded-3xl text-left";
-                } else {
-                    floatingIcons.innerHTML = `
-                        <div class="absolute top-10 left-6 text-3xl float-animation">${theme.floatingIcons[0]}</div>
-                        <div class="absolute bottom-10 right-6 text-2xl float-animation" style="animation-delay: 2s;">${theme.floatingIcons[1]}</div>
-                        <div class="absolute top-1/2 right-4 text-3xl float-animation" style="animation-delay: 1s;">${theme.floatingIcons[2]}</div>
-                    `;
-                    dedicatedLetterState.className = "hidden opacity-0 transform scale-95 transition-all duration-700 relative z-20 w-full bg-white/95 backdrop-blur-md p-8 sm:p-10 rounded-3xl shadow-2xl border border-rose-200 text-left";
-                }
-
-                document.getElementById('dedicatedAvatar').src = letter.catUrl;
-                document.getElementById('dedicatedLetterAvatar').src = letter.catUrl;
-                document.getElementById('dedicatedTitle').innerText = 'A Special Letter For ' + letter.recipient;
-                document.getElementById('dedicatedSenderLabel').innerText = letter.sender;
-                document.getElementById('dedicatedSenderSub').innerText = letter.sender;
-                document.getElementById('dedicatedRecipientTitle').innerText = 'My Dearest ' + letter.recipient;
-                
-                const bodyEl = document.getElementById('dedicatedBodyContent');
-                bodyEl.className = `${theme.bodyStyle} mb-6 whitespace-pre-line`;
-                bodyEl.innerText = letter.body;
-
-                document.getElementById('dedicatedSignOff').innerText = letter.signOff;
-
-                const audio = document.getElementById('dedicatedAudio');
-                document.getElementById('dedicatedAudioSource').src = letter.musicUrl;
-                audio.load();
-
-                document.getElementById('dedicatedEnvelopeState').classList.remove('hidden', 'opacity-0', 'scale-90', 'pointer-events-none', 'absolute');
-                document.getElementById('dedicatedLetterState').classList.add('hidden', 'opacity-0', 'scale-95');
-            } else {
-                headerNav.classList.remove('hidden');
-                dedicatedView.classList.add('hidden');
-                createView.classList.remove('hidden');
-            }
-        }
-
-        function openDedicatedLetter() {
-            const audio = document.getElementById('dedicatedAudio');
-            audio.play().catch(e => console.log("Audio play restricted", e));
-
-            const envState = document.getElementById('dedicatedEnvelopeState');
-            const letState = document.getElementById('dedicatedLetterState');
-
-            envState.classList.add('opacity-0', 'scale-90', 'pointer-events-none', 'absolute');
-            setTimeout(() => {
-                envState.classList.add('hidden');
-                letState.classList.remove('hidden');
-                setTimeout(() => {
-                    letState.classList.remove('opacity-0', 'scale-95');
-                    letState.classList.add('opacity-100', 'scale-100');
-                }, 50);
-            }, 300);
-
-            triggerConfetti();
-        }
-
-        function triggerConfetti() {
-            confetti({
-                particleCount: 100,
-                spread: 80,
-                origin: { y: 0.6 },
-                colors: ['#f43f5e', '#38bdf8', '#c084fc', '#f59e0b', '#fb7185']
-            });
-        }
-
-        window.onload = function() {
-            loadTemplate(1);
-            handleRouting();
-        };
-
-        window.onhashchange = function() {
-            handleRouting();
-        };
-    </script>
-</body>
-</html>
+        // Drag and drop handlers
+<!-- ... existing code ... %>
