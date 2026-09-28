@@ -707,6 +707,9 @@
             if (code === 'storage/quota-exceeded') return 'Firebase Storage quota is unavailable/exceeded. Cloud Storage may also require the Blaze plan for this Firebase project.';
             if (code === 'storage/unauthenticated') return 'Firebase Storage requires authentication for this upload. Update your Storage Rules or add Firebase Authentication.';
             if (code === 'storage/bucket-not-found') return 'Firebase Storage is not configured for this project. Create/enable the Storage bucket first.';
+            if (code === 'auth/operation-not-allowed') return 'Firebase Anonymous Authentication is not enabled. In Firebase Console, enable Authentication → Sign-in method → Anonymous.';
+            if (code === 'auth/unauthorized-domain') return 'This website domain is not authorized in Firebase Authentication. Add your GitHub Pages domain under Authentication → Settings → Authorized domains.';
+            if (code === 'storage/retry-limit-exceeded') return 'Firebase Storage stopped retrying the upload. Check your connection and try again.';
             if (code === 'storage/project-not-found') return 'Firebase Storage could not find the project. Check the Firebase configuration.';
             if (code === 'storage/no-default-bucket') return 'No Firebase Storage bucket is configured. Check the storageBucket value.';
             if (code === 'storage/canceled') return 'The music upload was canceled. Please choose the song again.';
@@ -1292,11 +1295,12 @@
                     if (typeof window.fbUploadMusic !== 'function') {
                         throw new Error('Firebase Storage is not ready yet. Please wait a moment and try again.');
                     }
+                    if (publishBtn) {
+                        publishBtn.dataset.originalText = publishBtn.innerHTML;
+                        publishBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading music…';
+                    }
                     alertBox('Uploading your music… please wait');
-                    payload.music = await Promise.race([
-                        window.fbUploadMusic(selectedMusicFile),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Music upload timed out. Firebase Storage may be blocked by your Storage Rules or billing/storage configuration.')), 20000))
-                    ]);
+                    payload.music = await window.fbUploadMusic(selectedMusicFile);
                 } else if (selectedMusicUrl) {
                     payload.music = selectedMusicUrl;
                 }
@@ -1329,7 +1333,14 @@
                 console.error('Publish failed:', err);
                 alertBox(`I could not publish the letter: ${formatPublishError(err)}`);
             } finally {
-                if (publishBtn) { publishBtn.disabled = false; publishBtn.classList.remove('opacity-70'); }
+                if (publishBtn) {
+                    publishBtn.disabled = false;
+                    publishBtn.classList.remove('opacity-70');
+                    if (publishBtn.dataset.originalText) {
+                        publishBtn.innerHTML = publishBtn.dataset.originalText;
+                        delete publishBtn.dataset.originalText;
+                    }
+                }
             }
         }
 
@@ -1342,10 +1353,13 @@
 
         function alertBox(msg) {
             const div = document.createElement('div');
+            div.id = 'alertBox';
             div.className = 'fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl text-xs font-bold animate-in fade-in duration-300';
-            div.innerHTML = `<i class="fa-solid fa-check mr-2 text-rose-400"></i> ${msg}`;
+            div.innerHTML = `<i class="fa-solid fa-circle-info mr-2 text-rose-400"></i> <span data-alert-text>${escapeHtml(msg)}</span>`;
+            document.querySelectorAll('#alertBox').forEach(el => el.remove());
             document.body.appendChild(div);
-            setTimeout(() => div.remove(), 3000);
+            setTimeout(() => { if (div.isConnected) div.remove(); }, 5000);
+            return div;
         }
 
         function closeSuccessModal() {
@@ -1528,7 +1542,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         const app = initializeApp({
             apiKey: "AIzaSyDL6f8miUf0vecSlSyAMpFvrdUsUE7s9Ro",
@@ -1539,7 +1554,21 @@
             appId: "1:825266058226:web:9336c1a1adf73e3c21316b"
         });
         const db = getFirestore(app);
+        const auth = getAuth(app);
         const storage = getStorage(app);
+        let anonymousAuthPromise = null;
+
+        async function ensureAnonymousAuth() {
+            if (auth.currentUser) return auth.currentUser;
+            if (!anonymousAuthPromise) {
+                anonymousAuthPromise = signInAnonymously(auth).catch((err) => {
+                    anonymousAuthPromise = null;
+                    throw err;
+                });
+            }
+            const cred = await anonymousAuthPromise;
+            return cred.user;
+        }
 
         function randomId(len = 8) {
             const chars = 'abcdefghijkmnpqrstuvwxyz23456789';
@@ -1550,21 +1579,51 @@
         window.fbUploadMusic = async (file) => {
             if (!file) return '';
             if (!(file instanceof File)) throw new Error('The selected music file is no longer available. Please choose it again.');
+
+            await ensureAnonymousAuth();
+
             const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80) || 'music-file';
             const path = `letter-music/${randomId(12)}-${safeName}`;
             const musicRef = ref(storage, path);
-            try {
-                await uploadBytes(musicRef, file, {
-                    contentType: file.type || 'audio/mpeg',
-                    cacheControl: 'public,max-age=31536000'
+            const metadata = {
+                contentType: file.type || 'audio/mpeg',
+                cacheControl: 'public,max-age=31536000'
+            };
+
+            return await new Promise((resolve, reject) => {
+                const task = uploadBytesResumable(musicRef, file, metadata);
+                let lastShown = -1;
+                const stopTimer = setTimeout(() => {
+                    try { task.cancel(); } catch (_) {}
+                    reject(new Error('Music upload timed out. Check Firebase Storage, Authentication, billing, and Storage Rules.'));
+                }, 120000);
+
+                task.on('state_changed', (snapshot) => {
+                    const pct = snapshot.totalBytes ? Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100) : 0;
+                    if (pct !== lastShown) {
+                        lastShown = pct;
+                        const env = document.getElementById('alertBox');
+                        if (env && !env.classList.contains('hidden')) {
+                            const textEl = env.querySelector('[data-alert-text]');
+                            if (textEl) textEl.textContent = `Uploading your music… ${pct}%`;
+                        }
+                    }
+                }, (err) => {
+                    clearTimeout(stopTimer);
+                    console.error('Firebase music upload failed:', err);
+                    reject(err);
+                }, async () => {
+                    try {
+                        const url = await getDownloadURL(task.snapshot.ref);
+                        clearTimeout(stopTimer);
+                        if (!url) throw new Error('Firebase uploaded the music but did not return a download URL.');
+                        resolve(url);
+                    } catch (err) {
+                        clearTimeout(stopTimer);
+                        reject(err);
+                    }
                 });
-                const url = await getDownloadURL(musicRef);
-                if (!url) throw new Error('Firebase uploaded the music but did not return a download URL.');
-                return url;
-            } catch (err) {
-                console.error('Firebase music upload failed:', err);
-                throw err;
-            }
+            });
         };
 
         // Stores the (already compressed) letter and returns a short code like "k7x2m9ab"
