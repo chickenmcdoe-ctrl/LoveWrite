@@ -64,7 +64,27 @@
             box-shadow: 0 10px 30px rgba(139, 115, 85, 0.15), inset 0 0 40px rgba(210, 180, 140, 0.2);
             border: 2px dashed #d4c3a3;
         }
-    </style>
+    
+        .music-preset-btn {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 32px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #f8fafc;
+            transition: .18s ease;
+            cursor: pointer;
+        }
+        .music-preset-btn:hover { border-color: #fda4af; background: #fff1f2; transform: translateY(-1px); }
+        .music-preset-btn.selected { border-color: #fb7185; background: #fff1f2; box-shadow: 0 0 0 2px rgba(251,113,133,.12); }
+        .music-preset-icon { font-size: 18px; text-align: center; }
+        .music-preset-title { font-size: 13px; font-weight: 700; color: #334155; }
+        .music-preset-artist { font-size: 11px; color: #94a3b8; font-weight: 600; }
+</style>
     <script>
         if (location.hash.length > 1) document.documentElement.classList.add('letter-loading');
     </script>
@@ -221,31 +241,52 @@
                             </div>
                         </div>
 
-                        <!-- YouTube Music Picker -->
+                        <!-- Background Music Picker -->
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">
-                                <i class="fa-brands fa-youtube text-red-500 mr-2"></i> Background Music
+                                <i class="fa-solid fa-music text-rose-500 mr-2"></i> Background Music
                             </label>
                             <div class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-                                <div class="flex gap-2">
-                                    <input id="youtubeSearchInput" type="search" placeholder="Search a song or artist..." class="min-w-0 flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition text-sm" onkeydown="if(event.key==='Enter'){event.preventDefault();searchYouTubeMusic();}">
-                                    <button type="button" onclick="searchYouTubeMusic()" class="px-4 py-3 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition">Search</button>
+                                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Choose one of the 5 songs</p>
+                                <div id="musicPresetList" class="grid gap-2">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/my-love-mine-all-mine.mp3" data-music-title="My Love Mine All Mine — Mitski" onclick="selectMusicPreset(this)">
+                                        <span class="music-preset-icon">🌙</span><span class="music-preset-title">My Love Mine All Mine</span><span class="music-preset-artist">Mitski</span>
+                                    </button>
+                                    <button type="button" class="music-preset-btn" data-music-url="music/glue-song.mp3" data-music-title="Glue Song — beabadoobee" onclick="selectMusicPreset(this)">
+                                        <span class="music-preset-icon">💗</span><span class="music-preset-title">Glue Song</span><span class="music-preset-artist">beabadoobee</span>
+                                    </button>
+                                    <button type="button" class="music-preset-btn" data-music-url="music/from-the-start.mp3" data-music-title="From The Start — Laufey" onclick="selectMusicPreset(this)">
+                                        <span class="music-preset-icon">🌸</span><span class="music-preset-title">From The Start</span><span class="music-preset-artist">Laufey</span>
+                                    </button>
+                                    <button type="button" class="music-preset-btn" data-music-url="music/falling-behind.mp3" data-music-title="Falling Behind — Laufey" onclick="selectMusicPreset(this)">
+                                        <span class="music-preset-icon">☁️</span><span class="music-preset-title">Falling Behind</span><span class="music-preset-artist">Laufey</span>
+                                    </button>
+                                    <button type="button" class="music-preset-btn" data-music-url="music/love-wave-to-earth.mp3" data-music-title="love. — wave to earth" onclick="selectMusicPreset(this)">
+                                        <span class="music-preset-icon">🌊</span><span class="music-preset-title">love.</span><span class="music-preset-artist">wave to earth</span>
+                                    </button>
                                 </div>
-                                <div id="youtubeFeatured" class="grid gap-2 min-w-0"></div>
-                                <div id="youtubeResults" class="grid gap-2 min-w-0 max-h-[360px] overflow-y-auto overflow-x-hidden pr-1"></div>
-                                <div id="youtubeMusicStatus" class="text-xs text-slate-400"></div>
-                                <input type="hidden" id="selectedYoutubeVideoId" value="">
-                                <input type="hidden" id="selectedYoutubeTitle" value="">
-                            </div>
-                        </div>
 
-                        <div class="rounded-2xl bg-rose-50 border border-rose-100 p-4">
-                            <div class="flex items-start gap-3">
-                                <i class="fa-brands fa-youtube text-red-500 mt-0.5"></i>
-                                <div>
-                                    <p class="text-sm font-bold text-slate-700">YouTube music</p>
-                                    <p class="text-xs text-slate-500 mt-1">Choose a song and the official YouTube player will play it when the recipient opens the letter. YouTube controls, ads, and availability are controlled by YouTube.</p>
+                                <div class="flex items-center gap-3 py-1">
+                                    <div class="h-px bg-slate-100 flex-1"></div>
+                                    <span class="text-[11px] font-bold text-slate-400">OR</span>
+                                    <div class="h-px bg-slate-100 flex-1"></div>
                                 </div>
+
+                                <label for="musicFileInput" class="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl border-2 border-dashed border-rose-300 bg-rose-50/40 hover:bg-rose-50 hover:border-rose-500 cursor-pointer transition font-bold text-slate-700">
+                                    <i class="fa-solid fa-cloud-arrow-up text-rose-500"></i>
+                                    <span id="musicFileLabel">Upload your own song</span>
+                                </label>
+                                <input type="file" id="musicFileInput" accept="audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm,audio/*" class="hidden" onchange="handleMusicFileSelect(event)">
+                                <div id="musicFileInfo" class="hidden rounded-xl bg-slate-50 border border-slate-100 px-3 py-2 text-xs text-slate-600 flex items-center justify-between gap-3">
+                                    <span id="musicFileName" class="font-semibold truncate"></span>
+                                    <button type="button" onclick="clearMusicFile()" class="shrink-0 text-rose-500 font-bold hover:underline">Remove</button>
+                                </div>
+                                <div id="musicSelectionInfo" class="text-xs text-slate-500">
+                                    <i class="fa-solid fa-circle-info text-rose-400 mr-1"></i>
+                                    <span>Select a preset or upload your own. Music plays automatically when the letter is opened.
+                                    </span>
+                                </div>
+                                <button type="button" id="noMusicBtn" onclick="clearMusicSelection()" class="text-xs font-bold text-slate-400 hover:text-rose-500">No music</button>
                             </div>
                         </div>
 
@@ -436,14 +477,8 @@
 
                     <!-- Audio Element -->
                     <audio id="dedicatedAudio" loop>
-                        <source src="" id="dedicatedAudioSource" type="audio/ogg">
+                        <source src="" id="dedicatedAudioSource">
                     </audio>
-                    <div id="youtubePlayerWrap" class="hidden mt-4 px-4">
-                        <div class="rounded-2xl overflow-hidden border border-slate-200 bg-black shadow-sm">
-                            <div id="youtubePlayer" class="aspect-video w-full"></div>
-                        </div>
-                        <p id="youtubeNowPlaying" class="text-xs text-slate-500 mt-2 text-center"></p>
-                    </div>
 
                     <!-- Envelope State -->
                     <div id="dedicatedEnvelopeState" class="relative z-10 w-full max-w-md bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-rose-200">
@@ -498,10 +533,16 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script>
         // ---- Short link encoding: compact keys + preset codes + deflate compression + base64url ----
-        const musicPresets = [];
-        // Replace this placeholder with your NEW restricted YouTube Data API key.
-        // Do not reuse the key that was pasted into chat.
-        window.YOUTUBE_API_KEY = 'AIzaSyD8Are21pmY19LoRUD1fnZMqqOiYr71_uY';
+        const musicPresets = [
+            'music/my-love-mine-all-mine.mp3',
+            'music/glue-song.mp3',
+            'music/from-the-start.mp3',
+            'music/falling-behind.mp3',
+            'music/love-wave-to-earth.mp3'
+        ];
+        let selectedMusicFile = null;
+        let selectedMusicUrl = '';
+        let selectedMusicTitle = '';
 
         function b64uEncode(bytes) {
             let bin = '';
@@ -525,10 +566,8 @@
 
         async function encodeLetterPayload(p) {
             const aIdx = catPresets.indexOf(p.avatar);
-            const mIdx = musicPresets.indexOf(p.music);
             const c = { s: p.sender, r: p.recipient, b: p.body, g: p.sign, t: p.theme,
-                        a: aIdx >= 0 ? aIdx : p.avatar, m: mIdx >= 0 ? mIdx : p.music };
-            if (p.yt) { c.y = p.yt; if (p.ytStart) c.x = p.ytStart; if (p.ytTitle) c.z = p.ytTitle; }
+                        a: aIdx >= 0 ? aIdx : p.avatar, m: p.music || '' };
             if (p.photos && p.photos.length) { c.p = p.photos; c.l = p.layout; c.k = p.tint; c.o = p.strength; }
             const bytes = new TextEncoder().encode(JSON.stringify(c));
             if (typeof CompressionStream === 'function') {
@@ -546,8 +585,7 @@
                     return {
                         sender: c.s, recipient: c.r, body: c.b, sign: c.g, theme: c.t,
                         avatar: typeof c.a === 'number' ? catPresets[c.a] : c.a,
-                        music: typeof c.m === 'number' ? musicPresets[c.m] : c.m,
-                        yt: c.y || '', ytStart: c.x || 0, ytTitle: c.z || '',
+                        music: typeof c.m === 'number' ? (musicPresets[c.m] || '') : (c.m || ''),
                         photos: c.p || [], layout: c.l || 'none', tint: c.k || 'pink', strength: c.o
                     };
                 }
@@ -559,113 +597,99 @@
         }
 
 
-        let currentYT = null;
+        function selectMusicPreset(button) {
+            selectedMusicFile = null;
+            selectedMusicUrl = button.dataset.musicUrl || '';
+            selectedMusicTitle = button.dataset.musicTitle || '';
+            document.querySelectorAll('.music-preset-btn').forEach(btn => btn.classList.remove('selected'));
+            button.classList.add('selected');
 
-        function escapeHtml(value) {
-            return String(value || '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+            const input = document.getElementById('musicFileInput');
+            const label = document.getElementById('musicFileLabel');
+            const info = document.getElementById('musicFileInfo');
+            const selectionInfo = document.getElementById('musicSelectionInfo');
+            if (input) input.value = '';
+            if (label) label.textContent = 'Upload your own song';
+            if (info) info.classList.add('hidden');
+            if (selectionInfo) selectionInfo.innerHTML = `<i class="fa-solid fa-music text-rose-400 mr-1"></i> Selected: <strong>${escapeHtml(selectedMusicTitle)}</strong>`;
         }
 
-        function youtubeEmbedUrl(videoId, autoplay = 0) {
-            const params = new URLSearchParams({
-                enablejsapi: '1',
-                rel: '0',
-                modestbranding: '1',
-                autoplay: String(autoplay),
-                playsinline: '1',
-                loop: '1',
-                playlist: videoId
-            });
-            return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?${params.toString()}`;
-        }
-
-        function selectYouTubeSong(videoId, title) {
-            document.getElementById('selectedYoutubeVideoId').value = videoId;
-            document.getElementById('selectedYoutubeTitle').value = title || 'Selected song';
-            document.getElementById('youtubeMusicStatus').innerHTML = `<span class="text-emerald-600 font-semibold">✓ Selected:</span> ${escapeHtml(title || 'Song')}`;
-            document.querySelectorAll('[data-youtube-result]').forEach(el => el.classList.remove('ring-2','ring-rose-400','bg-rose-50'));
-            const chosen = document.querySelector(`[data-youtube-result="${CSS.escape(videoId)}"]`);
-            if (chosen) chosen.classList.add('ring-2','ring-rose-400','bg-rose-50');
-        }
-
-        function renderYouTubeResults(items, targetId) {
-            const target = document.getElementById(targetId);
-            target.innerHTML = '';
-            items.forEach(item => {
-                const id = item.id?.videoId || item.videoId;
-                if (!id) return;
-                const title = item.snippet?.title || item.title || 'YouTube song';
-                const channel = item.snippet?.channelTitle || item.channelTitle || '';
-                const thumb = item.snippet?.thumbnails?.medium?.url || item.snippet?.thumbnails?.default?.url || '';
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.setAttribute('data-youtube-result', id);
-                button.className = 'w-full min-w-0 max-w-full text-left flex items-center gap-3 p-2 rounded-xl border border-slate-100 hover:border-rose-200 hover:bg-rose-50 transition';
-                button.innerHTML = `${thumb ? `<img src="${escapeHtml(thumb)}" alt="" class="w-20 h-12 object-cover rounded-lg shrink-0">` : ''}<span class="min-w-0"><span class="block text-sm font-bold text-slate-700 truncate">${escapeHtml(title)}</span><span class="block text-xs text-slate-400 truncate">${escapeHtml(channel)}</span></span><span class="ml-auto shrink-0 text-xs font-bold text-rose-500">Select</span>`;
-                button.onclick = () => selectYouTubeSong(id, title);
-                target.appendChild(button);
-            });
-        }
-
-        async function searchYouTubeMusic() {
-            const input = document.getElementById('youtubeSearchInput');
-            const results = document.getElementById('youtubeResults');
-            const status = document.getElementById('youtubeMusicStatus');
-            const query = input.value.trim();
-            if (!query) { status.textContent = 'Type a song or artist to search.'; return; }
-            if (!window.YOUTUBE_API_KEY || window.YOUTUBE_API_KEY.includes('PASTE_YOUR')) {
-                status.innerHTML = '<span class="text-amber-600">Add your restricted YouTube Data API key in the code first.</span>';
+        function handleMusicFileSelect(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const maxBytes = 25 * 1024 * 1024;
+            if (!file.type.startsWith('audio/')) {
+                alertBox('Please choose an audio file.');
+                event.target.value = '';
                 return;
             }
-            status.textContent = 'Searching YouTube…';
-            results.innerHTML = '';
-            try {
-                const params = new URLSearchParams({ part: 'snippet', q: query, type: 'video', videoCategoryId: '10', maxResults: '8', key: window.YOUTUBE_API_KEY });
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error?.message || 'YouTube search failed');
-                renderYouTubeResults(data.items || [], 'youtubeResults');
-                status.textContent = data.items?.length ? 'Choose a song from the results.' : 'No matching songs found.';
-            } catch (err) {
-                console.error(err);
-                status.textContent = err.message || 'Could not search YouTube.';
+            if (file.size > maxBytes) {
+                alertBox('That music file is too large. Please choose one under 25 MB.');
+                event.target.value = '';
+                return;
             }
+            selectedMusicFile = file;
+            selectedMusicUrl = '';
+            selectedMusicTitle = file.name;
+            document.querySelectorAll('.music-preset-btn').forEach(btn => btn.classList.remove('selected'));
+
+            const label = document.getElementById('musicFileLabel');
+            const info = document.getElementById('musicFileInfo');
+            const name = document.getElementById('musicFileName');
+            const selectionInfo = document.getElementById('musicSelectionInfo');
+            if (label) label.textContent = 'Music selected';
+            if (name) name.textContent = file.name;
+            if (info) info.classList.remove('hidden');
+            if (selectionInfo) selectionInfo.innerHTML = `<i class="fa-solid fa-upload text-rose-400 mr-1"></i> Your uploaded song will be attached to this letter.`;
         }
 
-        function renderFeaturedYouTubeChoices() {
-            const choices = [
-                ['dQw4w9WgXcQ', 'Popular YouTube pick'],
-                ['kJQP7kiw5Fk', 'Latin pop pick'],
-                ['RgKAFK5djSk', 'Romantic pop pick']
-            ];
-            const target = document.getElementById('youtubeFeatured');
-            target.innerHTML = `<p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Quick picks</p>`;
-            choices.forEach(([id, title]) => {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'text-left px-3 py-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-sm font-semibold text-slate-600 transition';
-                button.textContent = title;
-                button.onclick = () => selectYouTubeSong(id, title);
-                target.appendChild(button);
-            });
+        function clearMusicFile() {
+            selectedMusicFile = null;
+            selectedMusicUrl = '';
+            selectedMusicTitle = '';
+            const input = document.getElementById('musicFileInput');
+            const label = document.getElementById('musicFileLabel');
+            const info = document.getElementById('musicFileInfo');
+            if (input) input.value = '';
+            if (label) label.textContent = 'Upload your own song';
+            if (info) info.classList.add('hidden');
+            document.querySelectorAll('.music-preset-btn').forEach(btn => btn.classList.remove('selected'));
+            const selectionInfo = document.getElementById('musicSelectionInfo');
+            if (selectionInfo) selectionInfo.innerHTML = `<i class="fa-solid fa-circle-info text-rose-400 mr-1"></i> Select a preset or upload your own. Music plays automatically when the letter is opened.`;
+        }
+
+        function clearMusicSelection() {
+            clearMusicFile();
+        }
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        }
+
+        function formatPublishError(err) {
+            const code = err?.code || '';
+            if (code === 'storage/unauthorized') return 'Music upload was blocked by Firebase Storage rules. Enable Storage and allow this app to upload/read the music file.';
+            if (code === 'storage/quota-exceeded') return 'Firebase Storage quota was exceeded.';
+            if (code === 'storage/unauthenticated') return 'Firebase Storage requires authentication for music uploads. Update your Storage rules or add authentication.';
+            return err?.message || 'Unknown error';
         }
 
         function playLetterMusic() {
-            const wrap = document.getElementById('youtubePlayerWrap');
-            const player = document.getElementById('youtubePlayer');
-            if (!currentYT || !wrap || !player) return;
-            wrap.classList.remove('hidden');
-            player.innerHTML = `<iframe class="w-full h-full" src="${youtubeEmbedUrl(currentYT, 1)}" title="YouTube music player" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
-            document.getElementById('youtubeNowPlaying').textContent = window.currentLetterMusicTitle || 'YouTube music';
+            const audio = document.getElementById('dedicatedAudio');
+            if (!audio || !audio.src) return;
+            audio.currentTime = 0;
+            const attempt = audio.play();
+            if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {});
         }
 
         function stopLetterMusic() {
-            const player = document.getElementById('youtubePlayer');
-            const wrap = document.getElementById('youtubePlayerWrap');
-            if (player) player.innerHTML = '';
-            if (wrap) wrap.classList.add('hidden');
             const audio = document.getElementById('dedicatedAudio');
-            if (audio) { audio.pause(); audio.currentTime = 0; }
-            currentYT = null;
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                audio.removeAttribute('src');
+                audio.load();
+            }
         }
 
 
@@ -1144,14 +1168,22 @@
                     sign: document.getElementById('signOff').value,
                     avatar: document.getElementById('selectedCatUrl').value,
                     music: '',
-                    yt: document.getElementById('selectedYoutubeVideoId').value,
-                    ytStart: 0,
-                    ytTitle: document.getElementById('selectedYoutubeTitle').value,
                     theme: document.getElementById('themeSelect').value
                 };
 
-                // Encode first. If Firebase is unavailable or its rules reject the write,
-                // fall back to the self-contained link instead of treating publishing as a failure.
+                // Preset songs are already part of the deployed site. Uploaded songs
+                // are sent to Firebase Storage so recipients can access them by URL.
+                if (selectedMusicFile) {
+                    if (typeof window.fbUploadMusic !== 'function') {
+                        throw new Error('Firebase Storage is not ready yet. Please wait a moment and try again.');
+                    }
+                    alertBox('Uploading your music…');
+                    payload.music = await window.fbUploadMusic(selectedMusicFile);
+                } else if (selectedMusicUrl) {
+                    payload.music = selectedMusicUrl;
+                }
+
+                // Encode the letter after the music URL is known.
                 let slug = await encodeLetterPayload(payload);
                 if (!slug) throw new Error('Could not encode the letter.');
 
@@ -1177,7 +1209,7 @@
                 document.getElementById('successModal').classList.remove('hidden');
             } catch (err) {
                 console.error('Publish failed:', err);
-                alertBox(`I could not publish the letter: ${err?.message || 'Unknown error'}`);
+                alertBox(`I could not publish the letter: ${formatPublishError(err)}`);
             } finally {
                 if (publishBtn) { publishBtn.disabled = false; publishBtn.classList.remove('opacity-70'); }
             }
@@ -1296,12 +1328,15 @@
                     applyPhotoStyle(data);
 
                     stopLetterMusic();
-                    currentYT = data.yt || '';
-                    window.currentLetterMusicTitle = data.ytTitle || '';
                     const audioSource = document.getElementById('dedicatedAudioSource');
                     const audio = document.getElementById('dedicatedAudio');
-                    audioSource.removeAttribute('src');
-                    audio.load();
+                    if (data.music) {
+                        audioSource.src = data.music;
+                        audio.load();
+                    } else {
+                        audioSource.removeAttribute('src');
+                        audio.load();
+                    }
 
                     document.getElementById('dedicatedEnvelopeState').classList.remove('hidden');
                     document.getElementById('dedicatedEnvelopeState').style.opacity = '1';
@@ -1314,7 +1349,6 @@
 
         window.addEventListener('load', () => {
             renderCatGrid();
-            renderFeaturedYouTubeChoices();
             updatePhotoUI();
             loadSample('romantic');
             checkHashRoute();
@@ -1328,6 +1362,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         const app = initializeApp({
             apiKey: "AIzaSyDL6f8miUf0vecSlSyAMpFvrdUsUE7s9Ro",
@@ -1338,12 +1373,22 @@
             appId: "1:825266058226:web:9336c1a1adf73e3c21316b"
         });
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         function randomId(len = 8) {
             const chars = 'abcdefghijkmnpqrstuvwxyz23456789';
             const bytes = crypto.getRandomValues(new Uint8Array(len));
             return Array.from(bytes, b => chars[b % chars.length]).join('');
         }
+
+        window.fbUploadMusic = async (file) => {
+            if (!file) return '';
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
+            const path = `letter-music/${randomId(12)}-${safeName}`;
+            const musicRef = ref(storage, path);
+            await uploadBytes(musicRef, file, { contentType: file.type || 'audio/mpeg', cacheControl: 'public,max-age=31536000' });
+            return await getDownloadURL(musicRef);
+        };
 
         // Stores the (already compressed) letter and returns a short code like "k7x2m9ab"
         window.fbSaveLetter = async (encoded) => {
