@@ -264,8 +264,8 @@
                             <select id="photoLayout" onchange="updatePhotoUI()" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-white">
                                 <option value="none">No photos</option>
                                 <option value="background">🖼️ Photo background with colour tint</option>
-                                <option value="top">📸 Photo collage above the letter</option>
-                                <option value="bottom">📸 Photo collage below the letter</option>
+                                <option value="left">📸 Photo collage to the left of the letter</option>
+                                <option value="right">📸 Photo collage to the right of the letter</option>
                                 <option value="sides">📸 Photo collage on both sides</option>
                             </select>
                             <div id="photoControls" class="hidden space-y-4">
@@ -334,24 +334,32 @@
 
                             <!-- Preview Opened Letter -->
                             <div id="simLetter" class="hidden relative z-20 w-full max-w-sm bg-white/95 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-rose-200 text-left transform scale-95 opacity-0 transition-all duration-700 max-h-[480px] overflow-y-auto">
-                                <div class="flex items-center justify-between mb-4 border-b border-rose-100 pb-3">
-                                    <div class="flex items-center space-x-3">
-                                        <img id="simLetterAvatar" src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-full object-cover border-2 border-rose-300" alt="Avatar" crossorigin="anonymous">
-                                        <div>
-                                            <h4 id="simRecipientDisplay" class="font-serif font-bold text-slate-800">My Dearest</h4>
-                                            <span id="simLockTag" class="text-xs text-rose-500 font-semibold"><i class="fa-solid fa-lock text-xs mr-1"></i> Private Love Letter</span>
+                                <div id="simPhotoTop" class="hidden flex-wrap justify-center gap-2 mb-4"></div>
+                                <div class="flex gap-2 items-start">
+                                    <div id="simPhotoLeft" class="hidden flex-col gap-2 w-12 shrink-0 pt-2"></div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between mb-4 border-b border-rose-100 pb-3">
+                                            <div class="flex items-center space-x-3">
+                                                <img id="simLetterAvatar" src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-full object-cover border-2 border-rose-300" alt="Avatar" crossorigin="anonymous">
+                                                <div>
+                                                    <h4 id="simRecipientDisplay" class="font-serif font-bold text-slate-800">My Dearest</h4>
+                                                    <span id="simLockTag" class="text-xs text-rose-500 font-semibold"><i class="fa-solid fa-lock text-xs mr-1"></i> Private Love Letter</span>
+                                                </div>
+                                            </div>
+                                            <button type="button" onclick="toggleSimEnvelope()" class="text-slate-400 hover:text-slate-600 text-xs bg-rose-50 px-2 py-1 rounded-md cursor-pointer">Close</button>
+                                        </div>
+
+                                        <div id="simBodyDisplay" class="text-slate-700 font-medium text-xs leading-relaxed mb-4 whitespace-pre-line italic font-serif">
+                                            From the very first moment...
+                                        </div>
+
+                                        <div class="flex items-center justify-between pt-3 border-t border-rose-100">
+                                            <span id="simSignDisplay" class="font-serif font-bold text-rose-600 text-xs">Forever Yours ❤️</span>
                                         </div>
                                     </div>
-                                    <button type="button" onclick="toggleSimEnvelope()" class="text-slate-400 hover:text-slate-600 text-xs bg-rose-50 px-2 py-1 rounded-md cursor-pointer">Close</button>
+                                    <div id="simPhotoRight" class="hidden flex-col gap-2 w-12 shrink-0 pt-5"></div>
                                 </div>
-
-                                <div id="simBodyDisplay" class="text-slate-700 font-medium text-xs leading-relaxed mb-4 whitespace-pre-line italic font-serif">
-                                    From the very first moment...
-                                </div>
-
-                                <div class="flex items-center justify-between pt-3 border-t border-rose-100">
-                                    <span id="simSignDisplay" class="font-serif font-bold text-rose-600 text-xs">Forever Yours ❤️</span>
-                                </div>
+                                <div id="simPhotoBottom" class="hidden flex-wrap justify-center gap-2 mt-4"></div>
                             </div>
                         </div>
                     </div>
@@ -735,6 +743,8 @@
             const l = document.getElementById('photoLayout').value;
             document.getElementById('photoControls').classList.toggle('hidden', l === 'none');
             document.getElementById('photoBgControls').classList.toggle('hidden', l !== 'background');
+            updateSimulatorPreview();
+            applySimulatorPhotoStyle();
         }
 
         function shrinkImage(file, max, q) {
@@ -774,6 +784,8 @@
                 w.append(im, b); box.appendChild(w);
             });
             document.getElementById('photoCount').textContent = letterPhotos.length + '/4';
+            updateSimulatorPreview();
+            applySimulatorPhotoStyle();
         }
 
         function applyPhotoStyle(d) {
@@ -801,8 +813,55 @@
                 photos.forEach((src, i) => (i % 2 === 0 ? document.getElementById('colL') : document.getElementById('colR')).appendChild(mk(src, i, 'w-full aspect-square')));
                 ['colL', 'colR'].forEach(id => { const e = document.getElementById(id); if (e.children.length) e.classList.remove('hidden'); });
             } else {
-                const col = document.getElementById(d.layout === 'top' ? 'colTop' : 'colBottom');
+                const col = document.getElementById(d.layout === 'left' ? 'colL' : 'colR');
                 photos.forEach((src, i) => col.appendChild(mk(src, i, 'w-20 h-20 sm:w-28 sm:h-28')));
+                col.classList.remove('hidden');
+            }
+        }
+
+        function applySimulatorPhotoStyle() {
+            const sim = document.getElementById('simLetter');
+            if (!sim) return;
+            const ids = ['simPhotoTop', 'simPhotoBottom', 'simPhotoLeft', 'simPhotoRight'];
+            ids.forEach(id => { const e = document.getElementById(id); e.innerHTML = ''; e.classList.add('hidden'); });
+            sim.style.backgroundImage = '';
+            sim.style.backgroundSize = '';
+            sim.style.backgroundPosition = '';
+
+            const layout = document.getElementById('photoLayout')?.value || 'none';
+            const photos = letterPhotos.slice(0, 4);
+            if (!photos.length || layout === 'none') return;
+
+            if (layout === 'background') {
+                const a = (+document.getElementById('photoStrength').value || 65) / 100;
+                const t = TINTS[document.getElementById('photoTint').value] || TINTS.pink;
+                sim.style.backgroundImage = `linear-gradient(160deg, rgba(${t},${a}), rgba(${t},${(a * 0.55).toFixed(2)})), url("${photos[0]}")`;
+                sim.style.backgroundSize = 'cover';
+                sim.style.backgroundPosition = 'center';
+                return;
+            }
+
+            const tilt = [-4, 3, -2, 5];
+            const mk = (src, i, cls) => {
+                const im = document.createElement('img');
+                im.src = src;
+                im.className = cls + ' object-cover rounded-md border-2 border-white shadow-md';
+                im.style.transform = `rotate(${tilt[i % 4]}deg)`;
+                return im;
+            };
+
+            if (layout === 'sides') {
+                photos.forEach((src, i) => {
+                    const col = document.getElementById(i % 2 === 0 ? 'simPhotoLeft' : 'simPhotoRight');
+                    col.appendChild(mk(src, i, 'w-full aspect-square'));
+                });
+                ['simPhotoLeft', 'simPhotoRight'].forEach(id => {
+                    const e = document.getElementById(id);
+                    if (e.children.length) e.classList.remove('hidden');
+                });
+            } else {
+                const col = document.getElementById(layout === 'left' ? 'simPhotoLeft' : 'simPhotoRight');
+                photos.forEach((src, i) => col.appendChild(mk(src, i, 'w-10 h-10 sm:w-12 sm:h-12')));
                 col.classList.remove('hidden');
             }
         }
@@ -994,6 +1053,7 @@
             document.getElementById('simRecipientDisplay').innerText = `To: ${recipient}`;
             document.getElementById('simBodyDisplay').innerText = body;
             document.getElementById('simSignDisplay').innerText = sign;
+            applySimulatorPhotoStyle();
         }
 
         function toggleSimEnvelope() {
