@@ -703,10 +703,14 @@
 
         function formatPublishError(err) {
             const code = err?.code || '';
-            if (code === 'storage/unauthorized') return 'Music upload was blocked by Firebase Storage rules. Enable Storage and allow this app to upload/read the music file.';
-            if (code === 'storage/quota-exceeded') return 'Firebase Storage quota was exceeded.';
-            if (code === 'storage/unauthenticated') return 'Firebase Storage requires authentication for music uploads. Update your Storage rules or add authentication.';
-            return err?.message || 'Unknown error';
+            if (code === 'storage/unauthorized') return 'Firebase Storage denied the music upload. Check your Storage Rules and allow this app to write to letter-music/.';
+            if (code === 'storage/quota-exceeded') return 'Firebase Storage quota is unavailable/exceeded. Cloud Storage may also require the Blaze plan for this Firebase project.';
+            if (code === 'storage/unauthenticated') return 'Firebase Storage requires authentication for this upload. Update your Storage Rules or add Firebase Authentication.';
+            if (code === 'storage/bucket-not-found') return 'Firebase Storage is not configured for this project. Create/enable the Storage bucket first.';
+            if (code === 'storage/project-not-found') return 'Firebase Storage could not find the project. Check the Firebase configuration.';
+            if (code === 'storage/no-default-bucket') return 'No Firebase Storage bucket is configured. Check the storageBucket value.';
+            if (code === 'storage/canceled') return 'The music upload was canceled. Please choose the song again.';
+            return err?.message || 'Unknown Firebase Storage error';
         }
 
         function playLetterMusic() {
@@ -1530,11 +1534,22 @@
 
         window.fbUploadMusic = async (file) => {
             if (!file) return '';
-            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
+            if (!(file instanceof File)) throw new Error('The selected music file is no longer available. Please choose it again.');
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80) || 'music-file';
             const path = `letter-music/${randomId(12)}-${safeName}`;
             const musicRef = ref(storage, path);
-            await uploadBytes(musicRef, file, { contentType: file.type || 'audio/mpeg', cacheControl: 'public,max-age=31536000' });
-            return await getDownloadURL(musicRef);
+            try {
+                await uploadBytes(musicRef, file, {
+                    contentType: file.type || 'audio/mpeg',
+                    cacheControl: 'public,max-age=31536000'
+                });
+                const url = await getDownloadURL(musicRef);
+                if (!url) throw new Error('Firebase uploaded the music but did not return a download URL.');
+                return url;
+            } catch (err) {
+                console.error('Firebase music upload failed:', err);
+                throw err;
+            }
         };
 
         // Stores the (already compressed) letter and returns a short code like "k7x2m9ab"
