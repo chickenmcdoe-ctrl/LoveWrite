@@ -393,7 +393,7 @@
                                         </div>
                                         <button type="button" onclick="toggleSimEnvelope()" class="text-slate-400 hover:text-slate-600 text-xs bg-rose-50 px-2 py-1 rounded-md cursor-pointer">Close</button>
                                     </div>
-                                    <div id="simPhotoTop" class="hidden flex flex-wrap justify-center gap-2 mb-4"></div>
+                                    <div id="simPhotoTop" class="hidden grid grid-cols-2 gap-2 mb-4"></div>
 
                                     <div id="simBodyDisplay" class="text-slate-700 font-medium text-xs leading-relaxed mb-4 whitespace-pre-line italic font-serif">
                                         From the very first moment...
@@ -415,7 +415,7 @@
                                         <div class="flex items-center justify-between pt-3 border-t border-rose-100">
                                             <span id="simSignDisplay" class="font-serif font-bold text-rose-600 text-xs">Forever Yours ❤️</span>
                                         </div>
-                                        <div id="simPhotoBottom" class="hidden flex flex-wrap justify-center gap-2 mt-4"></div>
+                                        <div id="simPhotoBottom" class="hidden grid grid-cols-2 gap-2 mt-4"></div>
                                     </div>
                             </div>
                         </div>
@@ -535,6 +535,7 @@
                         <div class="pt-4 border-t border-rose-100 text-center">
                             <span id="dedicatedSignOff" class="font-serif font-bold text-rose-600 text-sm">Forever Yours ❤️</span>
                         </div>
+                        <div id="colBottom" class="hidden grid grid-cols-2 gap-3 mt-6"></div>
 
                         <div id="dedicatedMusicPanel" class="hidden mt-5 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 shadow-sm">
                             <div class="flex items-center gap-3">
@@ -566,7 +567,7 @@
                         <div id="dedicatedLetterExpiry" class="mt-4 pt-4 border-t border-rose-100 text-center text-xs font-semibold text-rose-500" aria-live="polite">
                             <i class="fa-solid fa-clock mr-1"></i><span id="dedicatedExpiryCountdown">This letter expires in 24h 0m.</span>
                         </div>
-                        </div><div id="colR" class="hidden flex-col gap-4 w-14 sm:w-24 shrink-0 pt-10"></div></div><div id="colBottom" class="hidden flex-wrap justify-center gap-4 mt-6"></div>
+                        </div><div id="colR" class="hidden flex-col gap-4 w-14 sm:w-24 shrink-0 pt-10"></div></div>
                     </div>
                 </div>
 
@@ -992,7 +993,7 @@
             const addCollage = (id, items) => {
                 const col = document.getElementById(id);
                 if (!col) return;
-                items.forEach((src, i) => col.appendChild(mk(src, i, 'w-24 h-16 sm:w-28 sm:h-20')));
+                items.forEach((src, i) => col.appendChild(mk(src, i, 'w-full aspect-[3/2]')));
                 if (col.children.length) col.classList.remove('hidden');
             };
 
@@ -1044,7 +1045,7 @@
             const addCollage = (id, items) => {
                 const col = document.getElementById(id);
                 if (!col) return;
-                items.forEach((src, i) => col.appendChild(mk(src, i, 'w-20 h-14 sm:w-24 sm:h-16')));
+                items.forEach((src, i) => col.appendChild(mk(src, i, 'w-full aspect-[3/2]')));
                 if (col.children.length) col.classList.remove('hidden');
             };
 
