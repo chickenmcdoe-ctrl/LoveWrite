@@ -312,7 +312,7 @@
                             <select id="photoLayout" onchange="updatePhotoUI()" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-white">
                                 <option value="none">No photos</option>
                                 <option value="background">🖼️ One photo as the background</option>
-                                <option value="top">📸 Two-photo collage below the recipient</option>
+                                <option value="top">📸 One photo below the recipient</option>
                                 <option value="bottom">📸 Two-photo collage below the sign-off</option>
                                 <option value="both">📸 Two collages — top &amp; bottom</option>
                             </select>
@@ -322,7 +322,7 @@
                                     <span id="photoCount" class="text-xs text-slate-500 ml-2">0/4</span>
                                     <input type="file" id="photoInput" accept="image/*" multiple class="hidden" onchange="handlePhotoFiles(event)">
                                     <div id="photoThumbs" class="flex flex-wrap gap-3 mt-3"></div>
-                                    <p class="text-xs text-slate-500 mt-2">Background uses 1 photo. Top or bottom uses 2 photos side by side. Both uses 4 photos.</p>
+                                    <p class="text-xs text-slate-500 mt-2">Background uses 1 photo. Top uses 1 photo. Bottom uses 2 photos side by side. Both uses 3 photos.</p>
                                 </div>
                                 <div id="photoBgControls" class="hidden grid grid-cols-2 gap-3">
                                     <div>
@@ -940,7 +940,7 @@
 
         async function handlePhotoFiles(e) {
             const layout = document.getElementById('photoLayout')?.value || 'none';
-            const maxPhotos = layout === 'background' ? 1 : (layout === 'both' ? 4 : 2);
+            const maxPhotos = layout === 'background' ? 1 : (layout === 'top' ? 1 : (layout === 'both' ? 3 : 2));
             const files = [...e.target.files].slice(0, Math.max(0, maxPhotos - letterPhotos.length));
             for (const f of files) { try { letterPhotos.push(await shrinkImage(f, 800, 0.6)); } catch (err) {} }
             e.target.value = '';
@@ -959,7 +959,7 @@
                 w.append(im, b); box.appendChild(w);
             });
             const layout = document.getElementById('photoLayout')?.value || 'none';
-            const maxUsed = layout === 'background' ? 1 : (layout === 'both' ? 4 : 2);
+            const maxUsed = layout === 'background' ? 1 : (layout === 'top' ? 1 : (layout === 'both' ? 3 : 2));
             document.getElementById('photoCount').textContent = Math.min(letterPhotos.length, maxUsed) + '/' + maxUsed;
             updateSimulatorPreview();
             applySimulatorPhotoStyle();
@@ -996,9 +996,10 @@
                 if (!col) return;
                 items.forEach((src, i) => {
                     const im = mk(src, i, '');
-                    im.style.setProperty('width', 'calc(50% - 6px)', 'important');
-                    im.style.setProperty('flex', '0 0 calc(50% - 6px)', 'important');
-                    im.style.setProperty('max-width', 'calc(50% - 6px)', 'important');
+                    const one = items.length === 1;
+                    im.style.setProperty('width', one ? '100%' : 'calc(50% - 6px)', 'important');
+                    im.style.setProperty('flex', one ? '0 0 100%' : '0 0 calc(50% - 6px)', 'important');
+                    im.style.setProperty('max-width', one ? '100%' : 'calc(50% - 6px)', 'important');
                     im.style.setProperty('min-width', '0', 'important');
                     im.style.aspectRatio = '3 / 2';
                     im.style.height = 'auto';
@@ -1017,11 +1018,11 @@
 
             // Legacy letters using the old left/right/sides presets are treated as the new bottom collage.
             const normalizedLayout = ['left', 'right', 'sides'].includes(d.layout) ? 'bottom' : d.layout;
-            if (normalizedLayout === 'top') addCollage('colTop', photos.slice(0, 2));
+            if (normalizedLayout === 'top') addCollage('colTop', photos.slice(0, 1));
             else if (normalizedLayout === 'bottom') addCollage('colBottom', photos.slice(0, 2));
             else if (normalizedLayout === 'both') {
-                addCollage('colTop', photos.slice(0, 2));
-                addCollage('colBottom', photos.slice(2, 4));
+                addCollage('colTop', photos.slice(0, 1));
+                addCollage('colBottom', photos.slice(1, 3));
             }
         }
 
@@ -1067,9 +1068,10 @@
                 if (!col) return;
                 items.forEach((src, i) => {
                     const im = mk(src, i, '');
-                    im.style.setProperty('width', 'calc(50% - 6px)', 'important');
-                    im.style.setProperty('flex', '0 0 calc(50% - 6px)', 'important');
-                    im.style.setProperty('max-width', 'calc(50% - 6px)', 'important');
+                    const one = items.length === 1;
+                    im.style.setProperty('width', one ? '100%' : 'calc(50% - 6px)', 'important');
+                    im.style.setProperty('flex', one ? '0 0 100%' : '0 0 calc(50% - 6px)', 'important');
+                    im.style.setProperty('max-width', one ? '100%' : 'calc(50% - 6px)', 'important');
                     im.style.setProperty('min-width', '0', 'important');
                     im.style.aspectRatio = '3 / 2';
                     im.style.height = 'auto';
@@ -1086,11 +1088,11 @@
                 }
             };
 
-            if (layout === 'top') addCollage('simPhotoTop', photos.slice(0, 2));
+            if (layout === 'top') addCollage('simPhotoTop', photos.slice(0, 1));
             else if (layout === 'bottom') addCollage('simPhotoBottom', photos.slice(0, 2));
             else if (layout === 'both') {
-                addCollage('simPhotoTop', photos.slice(0, 2));
-                addCollage('simPhotoBottom', photos.slice(2, 4));
+                addCollage('simPhotoTop', photos.slice(0, 1));
+                addCollage('simPhotoBottom', photos.slice(1, 3));
             }
         }
 
@@ -1372,7 +1374,8 @@
                 const layout = document.getElementById('photoLayout').value;
                 const photos = layout === 'none' ? []
                     : layout === 'background' ? letterPhotos.slice(0, 1)
-                    : layout === 'both' ? letterPhotos.slice(0, 4)
+                    : layout === 'top' ? letterPhotos.slice(0, 1)
+                    : layout === 'both' ? letterPhotos.slice(0, 3)
                     : letterPhotos.slice(0, 2);
                 if (layout !== 'none' && !photos.length) { alertBox('Add at least one photo, or set the photo template to "No photos".'); return; }
                 if (photos.join('').length > 800000) { alertBox('Those photos are too large. Try fewer or smaller photos.'); return; }
