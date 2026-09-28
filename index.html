@@ -249,19 +249,19 @@
                             <div class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
                                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Choose one of the 5 songs</p>
                                 <div id="musicPresetList" class="grid gap-2">
-                                    <button type="button" class="music-preset-btn" data-music-url="music/My-love-mine-all-mine.mp3" data-music-title="My Love Mine All Mine — Mitski" onclick="selectMusicPreset(this)">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/my-love-mine-all-mine.mp3" data-music-title="My Love Mine All Mine — Mitski" onclick="selectMusicPreset(this)">
                                         <span class="music-preset-icon">🌙</span><span class="music-preset-title">My Love Mine All Mine</span><span class="music-preset-artist">Mitski</span>
                                     </button>
-                                    <button type="button" class="music-preset-btn" data-music-url="music/Glue-song.mp3" data-music-title="Glue Song — beabadoobee" onclick="selectMusicPreset(this)">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/glue-song.mp3" data-music-title="Glue Song — beabadoobee" onclick="selectMusicPreset(this)">
                                         <span class="music-preset-icon">💗</span><span class="music-preset-title">Glue Song</span><span class="music-preset-artist">beabadoobee</span>
                                     </button>
-                                    <button type="button" class="music-preset-btn" data-music-url="music/From-the-start.mp3" data-music-title="From The Start — Laufey" onclick="selectMusicPreset(this)">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/from-the-start.mp3" data-music-title="From The Start — Laufey" onclick="selectMusicPreset(this)">
                                         <span class="music-preset-icon">🌸</span><span class="music-preset-title">From The Start</span><span class="music-preset-artist">Laufey</span>
                                     </button>
-                                    <button type="button" class="music-preset-btn" data-music-url="music/Falling-behind.mp3" data-music-title="Falling Behind — Laufey" onclick="selectMusicPreset(this)">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/falling-behind.mp3" data-music-title="Falling Behind — Laufey" onclick="selectMusicPreset(this)">
                                         <span class="music-preset-icon">☁️</span><span class="music-preset-title">Falling Behind</span><span class="music-preset-artist">Laufey</span>
                                     </button>
-                                    <button type="button" class="music-preset-btn" data-music-url="music/Love.mp3" data-music-title="love. — wave to earth" onclick="selectMusicPreset(this)">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/love-wave-to-earth.mp3" data-music-title="love. — wave to earth" onclick="selectMusicPreset(this)">
                                         <span class="music-preset-icon">🌊</span><span class="music-preset-title">love.</span><span class="music-preset-artist">wave to earth</span>
                                     </button>
                                 </div>
@@ -565,11 +565,11 @@
     <script>
         // ---- Short link encoding: compact keys + preset codes + deflate compression + base64url ----
         const musicPresets = [
-            'music/My-love-mine-all-mine.mp3',
-            'music/Glue-song.mp3',
-            'music/From-the-start.mp3',
-            'music/Falling-behind.mp3',
-            'music/Love.mp3'
+            'music/my-love-mine-all-mine.mp3',
+            'music/glue-song.mp3',
+            'music/from-the-start.mp3',
+            'music/falling-behind.mp3',
+            'music/love-wave-to-earth.mp3'
         ];
         let selectedMusicFile = null;
         let selectedMusicUrl = '';
@@ -710,23 +710,25 @@
             if (code === 'storage/project-not-found') return 'Firebase Storage could not find the project. Check the Firebase configuration.';
             if (code === 'storage/no-default-bucket') return 'No Firebase Storage bucket is configured. Check the storageBucket value.';
             if (code === 'storage/canceled') return 'The music upload was canceled. Please choose the song again.';
+            if (String(err?.message || '').toLowerCase().includes('timed out')) return 'The music upload took too long and was stopped. Check Firebase Storage Rules/billing, then try again.';
             return err?.message || 'Unknown Firebase Storage error';
         }
 
         function playLetterMusic() {
             const audio = document.getElementById('dedicatedAudio');
-            const source = document.getElementById('dedicatedAudioSource');
-            if (!audio || !source || !source.src) return;
+            if (!audio || !audio.src) return;
 
             audio.loop = true;
+            audio.preload = 'auto';
             try { audio.currentTime = 0; } catch (e) {}
 
-            audio.preload = 'auto';
+            // The Open Your Letter button is a direct user interaction, so start
+            // playback from this click rather than relying on page-load autoplay.
             audio.load();
             const attempt = audio.play();
             if (attempt && typeof attempt.catch === 'function') {
                 attempt.catch((err) => {
-                    console.warn('Music playback was blocked or the file could not load:', err);
+                    console.warn('Letter music could not start:', err);
                 });
             }
         }
@@ -1290,8 +1292,11 @@
                     if (typeof window.fbUploadMusic !== 'function') {
                         throw new Error('Firebase Storage is not ready yet. Please wait a moment and try again.');
                     }
-                    alertBox('Uploading your music…');
-                    payload.music = await window.fbUploadMusic(selectedMusicFile);
+                    alertBox('Uploading your music… please wait');
+                    payload.music = await Promise.race([
+                        window.fbUploadMusic(selectedMusicFile),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Music upload timed out. Firebase Storage may be blocked by your Storage Rules or billing/storage configuration.')), 20000))
+                    ]);
                 } else if (selectedMusicUrl) {
                     payload.music = selectedMusicUrl;
                 }
@@ -1468,24 +1473,34 @@
                     const audioSource = document.getElementById('dedicatedAudioSource');
                     const audio = document.getElementById('dedicatedAudio');
                     if (data.music) {
-                        audioSource.src = data.music;
+                        // Resolve preset paths against the actual page URL so the music
+                        // still works on GitHub Pages and when a short Firebase link is opened.
+                        const musicUrl = /^https?:\/\//i.test(data.music)
+                            ? data.music
+                            : new URL(data.music.replace(/^\.\//, ''), document.baseURI).href;
+                        audio.src = musicUrl;
+                        if (audioSource) audioSource.src = musicUrl;
+                        audio.preload = 'auto';
                         audio.load();
+
                         const musicPanel = document.getElementById('dedicatedMusicPanel');
                         const musicName = document.getElementById('dedicatedMusicName');
                         if (musicName) {
                             const known = {
-                                'music/My-love-mine-all-mine.mp3': 'My Love Mine All Mine — Mitski',
-                                'music/Glue-song.mp3': 'Glue Song — beabadoobee',
-                                'music/From-the-start.mp3': 'From The Start — Laufey',
-                                'music/Falling-behind.mp3': 'Falling Behind — Laufey',
-                                'music/Love.mp3': 'love. — wave to earth'
+                                'music/my-love-mine-all-mine.mp3': 'My Love Mine All Mine — Mitski',
+                                'music/glue-song.mp3': 'Glue Song — beabadoobee',
+                                'music/from-the-start.mp3': 'From The Start — Laufey',
+                                'music/falling-behind.mp3': 'Falling Behind — Laufey',
+                                'music/love-wave-to-earth.mp3': 'love. — wave to earth'
                             };
-                            const key = new URL(data.music, window.location.href).pathname.split('/').slice(-2).join('/');
+                            let key = data.music;
+                            try { key = new URL(data.music, document.baseURI).pathname.split('/').slice(-2).join('/'); } catch (e) {}
                             musicName.textContent = known[key] || 'Background music';
                         }
                         if (musicPanel) musicPanel.classList.add('hidden');
                     } else {
-                        audioSource.removeAttribute('src');
+                        audio.removeAttribute('src');
+                        if (audioSource) audioSource.removeAttribute('src');
                         audio.load();
                     }
 
