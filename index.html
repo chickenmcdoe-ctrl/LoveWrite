@@ -436,7 +436,7 @@
                 <!-- Footer Banner -->
                 <div class="bg-white/90 border-t border-rose-100 py-3 px-6 text-center text-xs font-semibold text-slate-500 flex items-center justify-center space-x-2">
                     <i class="fa-solid fa-shield-cat text-rose-500"></i>
-                    <span>Securely encrypted in URL hash for complete privacy</span>
+                    <span>Private link: only people you share it with can open it</span>
                 </div>
             </div>
         </div>
@@ -445,15 +445,61 @@
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script>
-        function encodeLetterPayload(letterObj) {
-            const jsonStr = JSON.stringify(letterObj);
-            return btoa(encodeURIComponent(jsonStr));
+        // ---- Short link encoding: compact keys + preset codes + deflate compression + base64url ----
+        const musicPresets = [
+            "https://actions.google.com/sounds/v1/ambiences/gentle_wind.ogg",
+            "https://actions.google.com/sounds/v1/relax/lofi_chill.ogg",
+            "https://actions.google.com/sounds/v1/weather/light_rain.ogg"
+        ];
+
+        function b64uEncode(bytes) {
+            let bin = '';
+            for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+            return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         }
 
-        function decodeLetterPayload(encodedStr) {
+        function b64uDecode(str) {
+            str = str.replace(/-/g, '+').replace(/_/g, '/');
+            while (str.length % 4) str += '=';
+            const bin = atob(str);
+            const out = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+            return out;
+        }
+
+        async function pipeBytes(bytes, transform) {
+            const stream = new Blob([bytes]).stream().pipeThrough(transform);
+            return new Uint8Array(await new Response(stream).arrayBuffer());
+        }
+
+        async function encodeLetterPayload(p) {
+            const aIdx = catPresets.indexOf(p.avatar);
+            const mIdx = musicPresets.indexOf(p.music);
+            const c = { s: p.sender, r: p.recipient, b: p.body, g: p.sign, t: p.theme,
+                        a: aIdx >= 0 ? aIdx : p.avatar, m: mIdx >= 0 ? mIdx : p.music };
+            if (p.yt) { c.y = p.yt; if (p.ytStart) c.x = p.ytStart; }
+            const bytes = new TextEncoder().encode(JSON.stringify(c));
+            if (typeof CompressionStream === 'function') {
+                try { return '~' + b64uEncode(await pipeBytes(bytes, new CompressionStream('deflate-raw'))); } catch (e) {}
+            }
+            return '_' + b64uEncode(bytes);
+        }
+
+        async function decodeLetterPayload(str) {
             try {
-                const jsonStr = decodeURIComponent(atob(encodedStr));
-                return JSON.parse(jsonStr);
+                if (str[0] === '~' || str[0] === '_') {
+                    let bytes = b64uDecode(str.slice(1));
+                    if (str[0] === '~') bytes = await pipeBytes(bytes, new DecompressionStream('deflate-raw'));
+                    const c = JSON.parse(new TextDecoder().decode(bytes));
+                    return {
+                        sender: c.s, recipient: c.r, body: c.b, sign: c.g, theme: c.t,
+                        avatar: typeof c.a === 'number' ? catPresets[c.a] : c.a,
+                        music: typeof c.m === 'number' ? musicPresets[c.m] : c.m,
+                        yt: c.y || '', ytStart: c.x || 0
+                    };
+                }
+                // Older, longer links keep working
+                return JSON.parse(decodeURIComponent(atob(str)));
             } catch (e) {
                 return null;
             }
@@ -705,7 +751,17 @@
         function processImageFile(file) {
             const reader = new FileReader();
             reader.onload = function(evt) {
-                updateCustomCat(evt.target.result);
+                // Shrink to a small square so the letter link doesn't balloon
+                const img = new Image();
+                img.onload = () => {
+                    const size = 120, c = document.createElement('canvas');
+                    c.width = c.height = size;
+                    const side = Math.min(img.width, img.height);
+                    c.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+                    updateCustomCat(c.toDataURL('image/jpeg', 0.6));
+                };
+                img.onerror = () => updateCustomCat(evt.target.result);
+                img.src = evt.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -788,7 +844,7 @@
             }
         }
 
-        function handlePublish(e) {
+        async function handlePublish(e) {
             e.preventDefault();
             const ytRaw = document.getElementById('youtubeLink').value.trim();
             const yt = ytRaw ? parseYouTube(ytRaw) : null;
@@ -804,9 +860,13 @@
                 ytStart: yt ? yt.start : 0,
                 theme: document.getElementById('themeSelect').value
             };
-            const encoded = encodeLetterPayload(payload);
-            currentActiveSlug = encoded;
-            const fullUrl = window.location.href.split('#')[0] + '#' + encoded;
+            let slug = await encodeLetterPayload(payload);
+            if (window.fbSaveLetter) {
+                try { slug = await window.fbSaveLetter(slug); }
+                catch (err) { console.warn('Short link unavailable, using long link:', err); }
+            }
+            currentActiveSlug = slug;
+            const fullUrl = window.location.href.split('#')[0] + '#' + slug;
             document.getElementById('generatedLinkInput').value = fullUrl;
             document.getElementById('successModal').classList.remove('hidden');
         }
@@ -867,11 +927,18 @@
             }
         }
 
-        function checkHashRoute() {
+        function isShortId(str) { return /^[a-z0-9]{6,12}$/i.test(str); }
+
+        async function checkHashRoute() {
             const hash = window.location.hash;
             if(hash && hash.length > 1) {
                 const encoded = hash.substring(1);
-                const data = decodeLetterPayload(encoded);
+                let raw = encoded;
+                if (isShortId(raw)) {
+                    raw = window.fbLoadLetter ? await window.fbLoadLetter(raw).catch(() => null) : null;
+                    if (!raw) { alertBox("Sorry, that letter couldn't be found."); return; }
+                }
+                const data = await decodeLetterPayload(raw);
                 if(data) {
                     currentActiveSlug = encoded;
                     document.getElementById('createView').classList.add('hidden');
@@ -938,6 +1005,43 @@
         });
 
         window.addEventListener('hashchange', checkHashRoute);
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const app = initializeApp({
+            apiKey: "AIzaSyDL6f8miUf0vecSlSyAMpFvrdUsUE7s9Ro",
+            authDomain: "cupidhub-98919.firebaseapp.com",
+            projectId: "cupidhub-98919",
+            storageBucket: "cupidhub-98919.firebasestorage.app",
+            messagingSenderId: "825266058226",
+            appId: "1:825266058226:web:9336c1a1adf73e3c21316b"
+        });
+        const db = getFirestore(app);
+
+        function randomId(len = 8) {
+            const chars = 'abcdefghijkmnpqrstuvwxyz23456789';
+            const bytes = crypto.getRandomValues(new Uint8Array(len));
+            return Array.from(bytes, b => chars[b % chars.length]).join('');
+        }
+
+        // Stores the (already compressed) letter and returns a short code like "k7x2m9ab"
+        window.fbSaveLetter = async (encoded) => {
+            let lastErr;
+            for (let i = 0; i < 3; i++) {
+                const id = randomId();
+                try { await setDoc(doc(db, 'letters', id), { d: encoded }); return id; }
+                catch (e) { lastErr = e; }
+            }
+            throw lastErr;
+        };
+
+        window.fbLoadLetter = async (id) => {
+            const snap = await getDoc(doc(db, 'letters', id));
+            return snap.exists() ? snap.data().d : null;
+        };
     </script>
 </body>
 </html>
