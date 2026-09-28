@@ -717,12 +717,12 @@
             audio.loop = true;
             try { audio.currentTime = 0; } catch (e) {}
 
+            audio.preload = 'auto';
+            audio.load();
             const attempt = audio.play();
             if (attempt && typeof attempt.catch === 'function') {
                 attempt.catch((err) => {
-                    console.warn('Music playback was blocked:', err);
-                    const btn = document.getElementById('dedicatedMusicPlayBtn');
-                    if (btn) btn.classList.remove('hidden');
+                    console.warn('Music playback was blocked or the file could not load:', err);
                 });
             }
         }
@@ -1171,8 +1171,13 @@
             }
 
             if (url) {
+                audio.pause();
+                audio.removeAttribute('src');
+                audio.load();
                 audio.src = url;
                 audio.loop = true;
+                audio.preload = 'auto';
+                audio.load();
                 if (name) name.textContent = selectedMusicTitle || 'Background music';
                 panel.classList.remove('hidden');
             } else {
@@ -1232,8 +1237,11 @@
                 }
                 if (audio && audio.src) {
                     audio.currentTime = 0;
+                    audio.volume = 1;
                     const attempt = audio.play();
-                    if (attempt && attempt.catch) attempt.catch(() => {});
+                    if (attempt && attempt.catch) {
+                        attempt.catch((err) => console.warn('Preview music could not play:', err));
+                    }
                 }
                 setTimeout(() => {
                     env.classList.add('hidden');
