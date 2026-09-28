@@ -650,14 +650,14 @@
         function handleMusicFileSelect(event) {
             const file = event.target.files && event.target.files[0];
             if (!file) return;
-            const maxBytes = 25 * 1024 * 1024;
+            const maxBytes = 20 * 1024 * 1024;
             if (!file.type.startsWith('audio/')) {
                 alertBox('Please choose an audio file.');
                 event.target.value = '';
                 return;
             }
             if (file.size > maxBytes) {
-                alertBox('That music file is too large. Please choose one under 25 MB.');
+                alertBox('That music file is too large. Please choose one under 20 MB.');
                 event.target.value = '';
                 return;
             }
@@ -703,17 +703,17 @@
 
         function formatPublishError(err) {
             const code = err?.code || '';
-            if (code === 'storage/unauthorized') return 'Firebase Storage denied the music upload. Check your Storage Rules and allow this app to write to letter-music/.';
-            if (code === 'storage/quota-exceeded') return 'Firebase Storage quota is unavailable/exceeded. Cloud Storage may also require the Blaze plan for this Firebase project.';
-            if (code === 'storage/unauthenticated') return 'Firebase Storage requires authentication for this upload. Update your Storage Rules or add Firebase Authentication.';
-            if (code === 'storage/bucket-not-found') return 'Firebase Storage is not configured for this project. Create/enable the Storage bucket first.';
-            if (code === 'auth/operation-not-allowed') return 'Firebase Anonymous Authentication is not enabled. In Firebase Console, enable Authentication → Sign-in method → Anonymous.';
-            if (code === 'auth/unauthorized-domain') return 'This website domain is not authorized in Firebase Authentication. Add your GitHub Pages domain under Authentication → Settings → Authorized domains.';
-            if (code === 'storage/retry-limit-exceeded') return 'Firebase Storage stopped retrying the upload. Check your connection and try again.';
-            if (code === 'storage/project-not-found') return 'Firebase Storage could not find the project. Check the Firebase configuration.';
-            if (code === 'storage/no-default-bucket') return 'No Firebase Storage bucket is configured. Check the storageBucket value.';
-            if (code === 'storage/canceled') return 'The music upload was canceled. Please choose the song again.';
-            if (String(err?.message || '').toLowerCase().includes('timed out')) return 'The music upload took too long and was stopped. Check Firebase Storage Rules/billing, then try again.';
+            if (String(err?.message || '').includes('Custom music storage is not configured')) return err.message;
+            if (String(err?.message || '').includes('Supabase')) return err.message;
+            
+            
+            
+            
+            
+            
+            
+            
+            if (String(err?.message || '').toLowerCase().includes('timed out')) return err.message;
             return err?.message || 'Unknown Firebase Storage error';
         }
 
@@ -1540,10 +1540,11 @@
     </script>
 
     <script type="module">
+        // Firebase is still used for the small Firestore letter records.
+        // Custom music uses Supabase Storage instead, so Firebase Cloud Storage/billing
+        // is not required for uploaded songs.
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         const app = initializeApp({
             apiKey: "AIzaSyDL6f8miUf0vecSlSyAMpFvrdUsUE7s9Ro",
@@ -1554,23 +1555,26 @@
             appId: "1:825266058226:web:9336c1a1adf73e3c21316b"
         });
         const db = getFirestore(app);
-        const auth = getAuth(app);
-        const storage = getStorage(app);
-        let anonymousAuthPromise = null;
 
-        async function ensureAnonymousAuth() {
-            if (auth.currentUser) return auth.currentUser;
-            if (!anonymousAuthPromise) {
-                anonymousAuthPromise = signInAnonymously(auth).catch((err) => {
-                    anonymousAuthPromise = null;
-                    throw err;
-                });
-            }
-            const cred = await anonymousAuthPromise;
-            return cred.user;
+        // =========================
+        // SUPABASE MUSIC STORAGE
+        // =========================
+        // Create a FREE Supabase project, make a PUBLIC bucket named "letter-music",
+        // then paste your Project URL and PUBLIC anon key below.
+        // The anon key is designed for browser use; never put a Supabase service_role
+        // key in this file.
+        const SUPABASE_URL = "https://poftyatfiubrxcroovre.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_eM7Sg9X55yW9-wfBU1vR3A_ACp6bujM";
+        const SUPABASE_MUSIC_BUCKET = "letter-music";
+
+        function supabaseConfigured() {
+            return /^https:\/\/[^\s]+\.supabase\.co$/.test(SUPABASE_URL) &&
+                   SUPABASE_ANON_KEY &&
+                   !SUPABASE_URL.includes('PASTE_YOUR_') &&
+                   !SUPABASE_ANON_KEY.includes('PASTE_YOUR_');
         }
 
-        function randomId(len = 8) {
+        function randomId(len = 10) {
             const chars = 'abcdefghijkmnpqrstuvwxyz23456789';
             const bytes = crypto.getRandomValues(new Uint8Array(len));
             return Array.from(bytes, b => chars[b % chars.length]).join('');
@@ -1579,60 +1583,80 @@
         window.fbUploadMusic = async (file) => {
             if (!file) return '';
             if (!(file instanceof File)) throw new Error('The selected music file is no longer available. Please choose it again.');
+            if (!supabaseConfigured()) {
+                throw new Error('Custom music storage is not configured yet. Create a free Supabase project, create a public "letter-music" bucket, then add its Project URL and public anon key to index.html.');
+            }
 
-            await ensureAnonymousAuth();
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80) || 'music-file.mp3';
+            const path = `letters/${randomId(12)}-${safeName}`;
+            const endpoint = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_MUSIC_BUCKET}/${encodeURIComponent(path).replace(/%2F/g, '/')}`;
 
-            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80) || 'music-file';
-            const path = `letter-music/${randomId(12)}-${safeName}`;
-            const musicRef = ref(storage, path);
-            const metadata = {
-                contentType: file.type || 'audio/mpeg',
-                cacheControl: 'public,max-age=31536000'
+            const alert = document.getElementById('alertBox');
+            const updateProgress = (message) => {
+                if (!alert || alert.classList.contains('hidden')) return;
+                const textEl = alert.querySelector('[data-alert-text]');
+                if (textEl) textEl.textContent = message;
             };
+            updateProgress('Uploading your music… 0%');
 
-            return await new Promise((resolve, reject) => {
-                const task = uploadBytesResumable(musicRef, file, metadata);
-                let lastShown = -1;
-                const stopTimer = setTimeout(() => {
-                    try { task.cancel(); } catch (_) {}
-                    reject(new Error('Music upload timed out. Check Firebase Storage, Authentication, billing, and Storage Rules.'));
-                }, 120000);
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 120000);
 
-                task.on('state_changed', (snapshot) => {
-                    const pct = snapshot.totalBytes ? Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100) : 0;
-                    if (pct !== lastShown) {
-                        lastShown = pct;
-                        const env = document.getElementById('alertBox');
-                        if (env && !env.classList.contains('hidden')) {
-                            const textEl = env.querySelector('[data-alert-text]');
-                            if (textEl) textEl.textContent = `Uploading your music… ${pct}%`;
-                        }
-                    }
-                }, (err) => {
-                    clearTimeout(stopTimer);
-                    console.error('Firebase music upload failed:', err);
-                    reject(err);
-                }, async () => {
-                    try {
-                        const url = await getDownloadURL(task.snapshot.ref);
-                        clearTimeout(stopTimer);
-                        if (!url) throw new Error('Firebase uploaded the music but did not return a download URL.');
-                        resolve(url);
-                    } catch (err) {
-                        clearTimeout(stopTimer);
-                        reject(err);
-                    }
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Content-Type': file.type || 'audio/mpeg',
+                        'x-upsert': 'false',
+                        'cache-control': '31536000'
+                    },
+                    body: file,
+                    signal: controller.signal
                 });
-            });
+
+                clearTimeout(timeout);
+                if (!response.ok) {
+                    let detail = '';
+                    try {
+                        const data = await response.json();
+                        detail = data?.message || data?.error || '';
+                    } catch (_) {}
+                    if (response.status === 401 || response.status === 403) {
+                        throw new Error('Supabase rejected the music upload. Make sure the "letter-music" bucket is PUBLIC and its Storage INSERT policy allows uploads.');
+                    }
+                    if (response.status === 409) {
+                        throw new Error('A music file with that path already exists. Please choose the song again.');
+                    }
+                    throw new Error(`Supabase music upload failed (${response.status})${detail ? ': ' + detail : '.'}`);
+                }
+
+                updateProgress('Uploading your music… 100%');
+                const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_MUSIC_BUCKET}/${path.split('/').map(encodeURIComponent).join('/')}`;
+                if (!publicUrl) throw new Error('Supabase uploaded the music but no public URL was created.');
+                return publicUrl;
+            } catch (err) {
+                clearTimeout(timeout);
+                if (err?.name === 'AbortError') {
+                    throw new Error('The music upload timed out. Check your connection and Supabase Storage settings, then try again.');
+                }
+                console.error('Supabase music upload failed:', err);
+                throw err;
+            }
         };
 
-        // Stores the (already compressed) letter and returns a short code like "k7x2m9ab"
+        // Stores the compressed letter and returns a short code like "k7x2m9ab".
         window.fbSaveLetter = async (encoded) => {
             let lastErr;
             for (let i = 0; i < 3; i++) {
                 const id = randomId();
-                try { await setDoc(doc(db, 'letters', id), { d: encoded }); return id; }
-                catch (e) { lastErr = e; }
+                try {
+                    await setDoc(doc(db, 'letters', id), { d: encoded });
+                    return id;
+                } catch (e) {
+                    lastErr = e;
+                }
             }
             throw lastErr;
         };
