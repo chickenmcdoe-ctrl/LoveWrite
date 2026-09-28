@@ -249,19 +249,19 @@
                             <div class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
                                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Choose one of the 5 songs</p>
                                 <div id="musicPresetList" class="grid gap-2">
-                                    <button type="button" class="music-preset-btn" data-music-url="music/my-love-mine-all-mine.mp3" data-music-title="My Love Mine All Mine — Mitski" onclick="selectMusicPreset(this)">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/My-love-mine-all-mine.mp3" data-music-title="My Love Mine All Mine — Mitski" onclick="selectMusicPreset(this)">
                                         <span class="music-preset-icon">🌙</span><span class="music-preset-title">My Love Mine All Mine</span><span class="music-preset-artist">Mitski</span>
                                     </button>
-                                    <button type="button" class="music-preset-btn" data-music-url="music/glue-song.mp3" data-music-title="Glue Song — beabadoobee" onclick="selectMusicPreset(this)">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/Glue-song.mp3" data-music-title="Glue Song — beabadoobee" onclick="selectMusicPreset(this)">
                                         <span class="music-preset-icon">💗</span><span class="music-preset-title">Glue Song</span><span class="music-preset-artist">beabadoobee</span>
                                     </button>
-                                    <button type="button" class="music-preset-btn" data-music-url="music/from-the-start.mp3" data-music-title="From The Start — Laufey" onclick="selectMusicPreset(this)">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/From-the-start.mp3" data-music-title="From The Start — Laufey" onclick="selectMusicPreset(this)">
                                         <span class="music-preset-icon">🌸</span><span class="music-preset-title">From The Start</span><span class="music-preset-artist">Laufey</span>
                                     </button>
-                                    <button type="button" class="music-preset-btn" data-music-url="music/falling-behind.mp3" data-music-title="Falling Behind — Laufey" onclick="selectMusicPreset(this)">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/Falling-behind.mp3" data-music-title="Falling Behind — Laufey" onclick="selectMusicPreset(this)">
                                         <span class="music-preset-icon">☁️</span><span class="music-preset-title">Falling Behind</span><span class="music-preset-artist">Laufey</span>
                                     </button>
-                                    <button type="button" class="music-preset-btn" data-music-url="music/love-wave-to-earth.mp3" data-music-title="love. — wave to earth" onclick="selectMusicPreset(this)">
+                                    <button type="button" class="music-preset-btn" data-music-url="music/Love.mp3" data-music-title="love. — wave to earth" onclick="selectMusicPreset(this)">
                                         <span class="music-preset-icon">🌊</span><span class="music-preset-title">love.</span><span class="music-preset-artist">wave to earth</span>
                                     </button>
                                 </div>
@@ -401,6 +401,19 @@
                                             From the very first moment...
                                         </div>
 
+                                        <div id="simMusicPanel" class="hidden mb-4 rounded-2xl border border-rose-200 bg-rose-50/80 p-3 shadow-sm">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center text-rose-500 shadow-sm">
+                                                    <i class="fa-solid fa-music text-xs"></i>
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <p class="text-[10px] font-bold uppercase tracking-wider text-rose-500">Now Playing</p>
+                                                    <p id="simMusicName" class="text-xs font-semibold text-slate-700 truncate">Background music</p>
+                                                </div>
+                                            </div>
+                                            <audio id="simMusicAudio" controls loop preload="metadata" class="w-full"></audio>
+                                        </div>
+
                                         <div class="flex items-center justify-between pt-3 border-t border-rose-100">
                                             <span id="simSignDisplay" class="font-serif font-bold text-rose-600 text-xs">Forever Yours ❤️</span>
                                         </div>
@@ -520,7 +533,6 @@
                                     <p id="dedicatedMusicName" class="text-sm font-semibold text-slate-700 truncate">Background music</p>
                                 </div>
                             </div>
-                            <audio id="dedicatedMusicControls" controls loop preload="metadata" class="w-full"></audio>
                         </div>
 
                         <div class="flex items-center justify-between pt-4 border-t border-rose-100">
@@ -553,15 +565,16 @@
     <script>
         // ---- Short link encoding: compact keys + preset codes + deflate compression + base64url ----
         const musicPresets = [
-            'music/my-love-mine-all-mine.mp3',
-            'music/glue-song.mp3',
-            'music/from-the-start.mp3',
-            'music/falling-behind.mp3',
-            'music/love-wave-to-earth.mp3'
+            'music/My-love-mine-all-mine.mp3',
+            'music/Glue-song.mp3',
+            'music/From-the-start.mp3',
+            'music/Falling-behind.mp3',
+            'music/Love.mp3'
         ];
         let selectedMusicFile = null;
         let selectedMusicUrl = '';
         let selectedMusicTitle = '';
+        let simMusicObjectUrl = '';
 
         function b64uEncode(bytes) {
             let bin = '';
@@ -631,6 +644,7 @@
             if (label) label.textContent = 'Upload your own song';
             if (info) info.classList.add('hidden');
             if (selectionInfo) selectionInfo.innerHTML = `<i class="fa-solid fa-music text-rose-400 mr-1"></i> Selected: <strong>${escapeHtml(selectedMusicTitle)}</strong>`;
+            updateSimulatorMusicPreview();
         }
 
         function handleMusicFileSelect(event) {
@@ -660,6 +674,7 @@
             if (name) name.textContent = file.name;
             if (info) info.classList.remove('hidden');
             if (selectionInfo) selectionInfo.innerHTML = `<i class="fa-solid fa-upload text-rose-400 mr-1"></i> Your uploaded song will be attached to this letter.`;
+            updateSimulatorMusicPreview();
         }
 
         function clearMusicFile() {
@@ -675,6 +690,7 @@
             document.querySelectorAll('.music-preset-btn').forEach(btn => btn.classList.remove('selected'));
             const selectionInfo = document.getElementById('musicSelectionInfo');
             if (selectionInfo) selectionInfo.innerHTML = `<i class="fa-solid fa-circle-info text-rose-400 mr-1"></i> Select a preset or upload your own. Music plays automatically when the letter is opened.`;
+            updateSimulatorMusicPreview();
         }
 
         function clearMusicSelection() {
@@ -839,6 +855,7 @@
             document.getElementById('photoBgControls').classList.toggle('hidden', l !== 'background');
             updateSimulatorPreview();
             applySimulatorPhotoStyle();
+            updateSimulatorMusicPreview();
         }
 
         function shrinkImage(file, max, q) {
@@ -1133,6 +1150,47 @@
             updateSimulatorPreview();
         }
 
+        function updateSimulatorMusicPreview() {
+            const panel = document.getElementById('simMusicPanel');
+            const audio = document.getElementById('simMusicAudio');
+            const name = document.getElementById('simMusicName');
+            if (!panel || !audio) return;
+
+            audio.pause();
+            audio.currentTime = 0;
+
+            if (simMusicObjectUrl) {
+                URL.revokeObjectURL(simMusicObjectUrl);
+                simMusicObjectUrl = '';
+            }
+
+            let url = selectedMusicUrl;
+            if (selectedMusicFile) {
+                simMusicObjectUrl = URL.createObjectURL(selectedMusicFile);
+                url = simMusicObjectUrl;
+            }
+
+            if (url) {
+                audio.src = url;
+                audio.loop = true;
+                if (name) name.textContent = selectedMusicTitle || 'Background music';
+                panel.classList.remove('hidden');
+            } else {
+                audio.removeAttribute('src');
+                audio.load();
+                panel.classList.add('hidden');
+                if (name) name.textContent = 'Background music';
+            }
+        }
+
+        function stopSimulatorMusic() {
+            const audio = document.getElementById('simMusicAudio');
+            if (audio) {
+                audio.pause();
+                try { audio.currentTime = 0; } catch (e) {}
+            }
+        }
+
         function updateSimulatorPreview() {
             const sender = document.getElementById('senderName').value || "Someone Special";
             const recipient = document.getElementById('recipientName').value || "My Dearest";
@@ -1153,6 +1211,8 @@
         function toggleSimEnvelope() {
             const env = document.getElementById('simEnvelope');
             const lettr = document.getElementById('simLetter');
+            const audio = document.getElementById('simMusicAudio');
+            const panel = document.getElementById('simMusicPanel');
             if(env.classList.contains('hidden')) {
                 env.classList.remove('hidden');
                 env.style.opacity = '1';
@@ -1160,9 +1220,21 @@
                 lettr.classList.add('hidden');
                 lettr.style.opacity = '0';
                 lettr.style.transform = 'scale(0.95)';
+                stopSimulatorMusic();
+                if (panel) panel.classList.add('hidden');
             } else {
-                env.style.opacity = '0';
-                env.style.transform = 'scale(0.95)';
+                // Start music during the actual Open button click. Waiting for a
+                // setTimeout here would leave the browser's user-gesture context
+                // and can cause audible playback to be blocked.
+                if (panel && (selectedMusicUrl || selectedMusicFile)) {
+                    updateSimulatorMusicPreview();
+                    panel.classList.remove('hidden');
+                }
+                if (audio && audio.src) {
+                    audio.currentTime = 0;
+                    const attempt = audio.play();
+                    if (attempt && attempt.catch) attempt.catch(() => {});
+                }
                 setTimeout(() => {
                     env.classList.add('hidden');
                     lettr.classList.remove('hidden');
@@ -1272,17 +1344,12 @@
         function openDedicatedLetter() {
             const env = document.getElementById('dedicatedEnvelopeState');
             const lettr = document.getElementById('dedicatedLetterState');
-            const audio = document.getElementById('dedicatedAudio');
             const panel = document.getElementById('dedicatedMusicPanel');
-            const controls = document.getElementById('dedicatedMusicControls');
             const source = document.getElementById('dedicatedAudioSource');
 
-            if (panel && controls && source && source.src) {
-                controls.src = source.src;
-                controls.loop = true;
+            if (panel && source && source.src) {
                 panel.classList.remove('hidden');
                 playLetterMusic();
-                controls.play().catch(() => {});
             }
 
             env.style.opacity = '0';
@@ -1302,14 +1369,7 @@
             const env = document.getElementById('dedicatedEnvelopeState');
             const lettr = document.getElementById('dedicatedLetterState');
             const panel = document.getElementById('dedicatedMusicPanel');
-            const controls = document.getElementById('dedicatedMusicControls');
 
-            if (controls) {
-                controls.pause();
-                controls.currentTime = 0;
-                controls.removeAttribute('src');
-                controls.load();
-            }
             if (panel) panel.classList.add('hidden');
             stopLetterMusic();
 
