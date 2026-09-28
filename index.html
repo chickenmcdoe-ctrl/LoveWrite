@@ -996,13 +996,23 @@
                 if (!col) return;
                 items.forEach((src, i) => {
                     const im = mk(src, i, '');
-                    im.style.width = 'calc(50% - 6px)';
-                    im.style.flex = '0 0 calc(50% - 6px)';
+                    im.style.setProperty('width', 'calc(50% - 6px)', 'important');
+                    im.style.setProperty('flex', '0 0 calc(50% - 6px)', 'important');
+                    im.style.setProperty('max-width', 'calc(50% - 6px)', 'important');
+                    im.style.setProperty('min-width', '0', 'important');
                     im.style.aspectRatio = '3 / 2';
                     im.style.height = 'auto';
                     col.appendChild(im);
                 });
-                if (col.children.length) { col.classList.remove('hidden'); col.style.display = 'flex'; }
+                if (col.children.length) {
+                    col.classList.remove('hidden');
+                    col.style.setProperty('display', 'flex', 'important');
+                    col.style.setProperty('flex-direction', 'row', 'important');
+                    col.style.setProperty('flex-wrap', 'nowrap', 'important');
+                    col.style.setProperty('align-items', 'stretch', 'important');
+                    col.style.setProperty('justify-content', 'center', 'important');
+                    col.style.setProperty('gap', '12px', 'important');
+                }
             };
 
             // Legacy letters using the old left/right/sides presets are treated as the new bottom collage.
@@ -1057,13 +1067,23 @@
                 if (!col) return;
                 items.forEach((src, i) => {
                     const im = mk(src, i, '');
-                    im.style.width = 'calc(50% - 6px)';
-                    im.style.flex = '0 0 calc(50% - 6px)';
+                    im.style.setProperty('width', 'calc(50% - 6px)', 'important');
+                    im.style.setProperty('flex', '0 0 calc(50% - 6px)', 'important');
+                    im.style.setProperty('max-width', 'calc(50% - 6px)', 'important');
+                    im.style.setProperty('min-width', '0', 'important');
                     im.style.aspectRatio = '3 / 2';
                     im.style.height = 'auto';
                     col.appendChild(im);
                 });
-                if (col.children.length) { col.classList.remove('hidden'); col.style.display = 'flex'; }
+                if (col.children.length) {
+                    col.classList.remove('hidden');
+                    col.style.setProperty('display', 'flex', 'important');
+                    col.style.setProperty('flex-direction', 'row', 'important');
+                    col.style.setProperty('flex-wrap', 'nowrap', 'important');
+                    col.style.setProperty('align-items', 'stretch', 'important');
+                    col.style.setProperty('justify-content', 'center', 'important');
+                    col.style.setProperty('gap', '12px', 'important');
+                }
             };
 
             if (layout === 'top') addCollage('simPhotoTop', photos.slice(0, 2));
