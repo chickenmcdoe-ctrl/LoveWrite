@@ -136,7 +136,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
                 <!-- Form Column -->
-                <div class="lg:col-span-7 bg-white/95 backdrop-blur-md p-6 sm:p-10 rounded-3xl shadow-xl shadow-rose-100/60 border border-rose-100">
+                <div class="lg:col-span-7 min-w-0 bg-white/95 backdrop-blur-md p-6 sm:p-10 rounded-3xl shadow-xl shadow-rose-100/60 border border-rose-100">
                     <div class="flex items-center justify-between pb-6 mb-6 border-b border-rose-100">
                         <div>
                             <h2 class="text-2xl font-serif font-bold text-slate-900">Letter Details</h2>
@@ -231,8 +231,8 @@
                                     <input id="youtubeSearchInput" type="search" placeholder="Search a song or artist..." class="min-w-0 flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition text-sm" onkeydown="if(event.key==='Enter'){event.preventDefault();searchYouTubeMusic();}">
                                     <button type="button" onclick="searchYouTubeMusic()" class="px-4 py-3 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition">Search</button>
                                 </div>
-                                <div id="youtubeFeatured" class="grid gap-2"></div>
-                                <div id="youtubeResults" class="grid gap-2"></div>
+                                <div id="youtubeFeatured" class="grid gap-2 min-w-0"></div>
+                                <div id="youtubeResults" class="grid gap-2 min-w-0 max-h-[360px] overflow-y-auto overflow-x-hidden pr-1"></div>
                                 <div id="youtubeMusicStatus" class="text-xs text-slate-400"></div>
                                 <input type="hidden" id="selectedYoutubeVideoId" value="">
                                 <input type="hidden" id="selectedYoutubeTitle" value="">
@@ -599,8 +599,8 @@
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.setAttribute('data-youtube-result', id);
-                button.className = 'w-full text-left flex items-center gap-3 p-2 rounded-xl border border-slate-100 hover:border-rose-200 hover:bg-rose-50 transition';
-                button.innerHTML = `${thumb ? `<img src="${escapeHtml(thumb)}" alt="" class="w-20 h-12 object-cover rounded-lg shrink-0">` : ''}<span class="min-w-0"><span class="block text-sm font-bold text-slate-700 truncate">${escapeHtml(title)}</span><span class="block text-xs text-slate-400 truncate">${escapeHtml(channel)}</span></span><span class="ml-auto text-xs font-bold text-rose-500">Select</span>`;
+                button.className = 'w-full min-w-0 max-w-full text-left flex items-center gap-3 p-2 rounded-xl border border-slate-100 hover:border-rose-200 hover:bg-rose-50 transition';
+                button.innerHTML = `${thumb ? `<img src="${escapeHtml(thumb)}" alt="" class="w-20 h-12 object-cover rounded-lg shrink-0">` : ''}<span class="min-w-0"><span class="block text-sm font-bold text-slate-700 truncate">${escapeHtml(title)}</span><span class="block text-xs text-slate-400 truncate">${escapeHtml(channel)}</span></span><span class="ml-auto shrink-0 text-xs font-bold text-rose-500">Select</span>`;
                 button.onclick = () => selectYouTubeSong(id, title);
                 target.appendChild(button);
             });
@@ -1133,36 +1133,48 @@
 
         async function handlePublish(e) {
             e.preventDefault();
-            // Starting a new letter always stops any music from the previously opened letter.
-            stopLetterMusic();
-            const layout = document.getElementById('photoLayout').value;
-            const photos = layout === 'none' ? [] : (layout === 'background' ? letterPhotos.slice(0, 1) : letterPhotos);
-            if (layout !== 'none' && !photos.length) { alertBox('Add at least one photo, or set the photo template to "No photos".'); return; }
-            if (photos.join('').length > 800000) { alertBox('Those photos are too large. Try fewer or smaller photos.'); return; }
-            const payload = {
-                photos, layout,
-                tint: document.getElementById('photoTint').value,
-                strength: +document.getElementById('photoStrength').value,
-                sender: document.getElementById('senderName').value,
-                recipient: document.getElementById('recipientName').value,
-                body: document.getElementById('letterBody').value,
-                sign: document.getElementById('signOff').value,
-                avatar: document.getElementById('selectedCatUrl').value,
-                music: '',
-                yt: document.getElementById('selectedYoutubeVideoId').value,
-                ytStart: 0,
-                ytTitle: document.getElementById('selectedYoutubeTitle').value,
-                theme: document.getElementById('themeSelect').value
-            };
-            let slug = await encodeLetterPayload(payload);
-            if (window.fbSaveLetter) {
-                try { slug = await window.fbSaveLetter(slug); }
-                catch (err) { console.warn('Short link unavailable, using long link:', err); }
+            const publishBtn = document.querySelector('#publishForm button[type="submit"]');
+            try {
+                // Starting a new letter always stops any music from the previously opened letter.
+                stopLetterMusic();
+                if (publishBtn) { publishBtn.disabled = true; publishBtn.classList.add('opacity-70'); }
+
+                const layout = document.getElementById('photoLayout').value;
+                const photos = layout === 'none' ? [] : (layout === 'background' ? letterPhotos.slice(0, 1) : letterPhotos);
+                if (layout !== 'none' && !photos.length) { alertBox('Add at least one photo, or set the photo template to "No photos".'); return; }
+                if (photos.join('').length > 800000) { alertBox('Those photos are too large. Try fewer or smaller photos.'); return; }
+
+                const payload = {
+                    photos, layout,
+                    tint: document.getElementById('photoTint').value,
+                    strength: +document.getElementById('photoStrength').value,
+                    sender: document.getElementById('senderName').value,
+                    recipient: document.getElementById('recipientName').value,
+                    body: document.getElementById('letterBody').value,
+                    sign: document.getElementById('signOff').value,
+                    avatar: document.getElementById('selectedCatUrl').value,
+                    music: '',
+                    yt: document.getElementById('selectedYoutubeVideoId').value,
+                    ytStart: 0,
+                    ytTitle: document.getElementById('selectedYoutubeTitle').value,
+                    theme: document.getElementById('themeSelect').value
+                };
+
+                let slug = await encodeLetterPayload(payload);
+                if (window.fbSaveLetter) {
+                    try { slug = await window.fbSaveLetter(slug); }
+                    catch (err) { console.warn('Short link unavailable, using long link:', err); }
+                }
+                currentActiveSlug = slug;
+                const fullUrl = window.location.href.split('#')[0] + '#' + slug;
+                document.getElementById('generatedLinkInput').value = fullUrl;
+                document.getElementById('successModal').classList.remove('hidden');
+            } catch (err) {
+                console.error('Publish failed:', err);
+                alertBox('I could not publish the letter. Please try again. If it still fails, check that the required fields are filled in.');
+            } finally {
+                if (publishBtn) { publishBtn.disabled = false; publishBtn.classList.remove('opacity-70'); }
             }
-            currentActiveSlug = slug;
-            const fullUrl = window.location.href.split('#')[0] + '#' + slug;
-            document.getElementById('generatedLinkInput').value = fullUrl;
-            document.getElementById('successModal').classList.remove('hidden');
         }
 
         function copyGeneratedLink() {
