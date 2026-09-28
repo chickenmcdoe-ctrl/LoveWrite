@@ -535,9 +535,16 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between pt-4 border-t border-rose-100">
-                            <span id="dedicatedSignOff" class="font-serif font-bold text-rose-600 text-sm">Forever Yours ❤️</span>
-                            <div class="flex items-center gap-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-rose-100">
+                            <div>
+                                <span id="dedicatedSignOff" class="font-serif font-bold text-rose-600 text-sm block">Forever Yours ❤️</span>
+                                <span id="dedicatedExpiryText" class="text-[11px] text-slate-400 font-semibold block mt-1">Available for 24 hours</span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 justify-end">
+                                <button type="button" id="dedicatedDownloadBtn" onclick="downloadLetter()" class="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                                    <i class="fa-solid fa-download"></i>
+                                    <span>Download Letter</span>
+                                </button>
                                 <button type="button" onclick="closeDedicatedLetter()" class="bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 px-4 py-2 rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
                                     <i class="fa-solid fa-envelope"></i>
                                     <span>Close Letter</span>
@@ -548,6 +555,16 @@
                                 </button>
                             </div>
                         </div></div><div id="colR" class="hidden flex-col gap-4 w-14 sm:w-24 shrink-0 pt-10"></div></div><div id="colBottom" class="hidden flex-wrap justify-center gap-4 mt-6"></div>
+                    </div>
+
+                    <!-- Expired letter state -->
+                    <div id="dedicatedExpiredState" class="hidden relative z-20 w-full max-w-xl bg-white/95 backdrop-blur-md p-10 rounded-3xl shadow-2xl border border-rose-200 text-center">
+                        <div class="w-20 h-20 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center mx-auto mb-5 text-3xl">
+                            <i class="fa-solid fa-hourglass-end"></i>
+                        </div>
+                        <h2 class="text-2xl font-serif font-bold text-slate-800 mb-2">This Letter Has Expired</h2>
+                        <p class="text-sm text-slate-500">This private letter was available for 24 hours and is no longer accessible.</p>
+                        <button type="button" onclick="goToCreatorHome()" class="mt-6 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-full text-sm shadow-lg cursor-pointer">Create a New Letter</button>
                     </div>
                 </div>
 
@@ -599,7 +616,7 @@
         async function encodeLetterPayload(p) {
             const aIdx = catPresets.indexOf(p.avatar);
             const c = { s: p.sender, r: p.recipient, b: p.body, g: p.sign, t: p.theme,
-                        a: aIdx >= 0 ? aIdx : p.avatar, m: p.music || '' };
+                        a: aIdx >= 0 ? aIdx : p.avatar, m: p.music || '', e: p.expiresAt || 0, x: p.cleanupId || '' };
             if (p.photos && p.photos.length) { c.p = p.photos; c.l = p.layout; c.k = p.tint; c.o = p.strength; }
             const bytes = new TextEncoder().encode(JSON.stringify(c));
             if (typeof CompressionStream === 'function') {
@@ -618,6 +635,7 @@
                         sender: c.s, recipient: c.r, body: c.b, sign: c.g, theme: c.t,
                         avatar: typeof c.a === 'number' ? catPresets[c.a] : c.a,
                         music: typeof c.m === 'number' ? (musicPresets[c.m] || '') : (c.m || ''),
+                        expiresAt: Number(c.e || 0), cleanupId: c.x || '',
                         photos: c.p || [], layout: c.l || 'none', tint: c.k || 'pink', strength: c.o
                     };
                 }
@@ -748,6 +766,54 @@
 
 
         let currentActiveSlug = '';
+        let currentLetterData = null;
+
+        function getLetterExpiryText(expiresAt) {
+            if (!expiresAt) return 'Available for 24 hours';
+            const remaining = expiresAt - Date.now();
+            if (remaining <= 0) return 'This letter has expired';
+            const mins = Math.ceil(remaining / 60000);
+            if (mins < 60) return `Expires in ${mins} minute${mins === 1 ? '' : 's'}`;
+            const hours = Math.floor(mins / 60);
+            const rem = mins % 60;
+            return rem ? `Expires in ${hours}h ${rem}m` : `Expires in ${hours} hour${hours === 1 ? '' : 's'}`;
+        }
+
+        function escapeHtmlAttr(value) {
+            return escapeHtml(value).replace(/`/g, '&#96;');
+        }
+
+        function downloadLetter() {
+            const d = currentLetterData;
+            if (!d || (d.expiresAt && Date.now() >= d.expiresAt)) {
+                alertBox('This letter has expired and can no longer be downloaded.');
+                return;
+            }
+
+            const photos = Array.isArray(d.photos) ? d.photos.filter(Boolean).slice(0, 4) : [];
+            const photoHtml = photos.map(src => `<img src="${escapeHtmlAttr(src)}" alt="Letter photo">`).join('');
+            const title = `A Special Letter For ${escapeHtml(d.recipient || 'You')}`;
+            const body = escapeHtml(d.body || '').replace(/\n/g, '<br>');
+            const sign = escapeHtml(d.sign || 'Forever Yours ❤️');
+            const sender = escapeHtml(d.sender || 'Someone Special');
+            const themeNames = { pink: 'rose', blue: 'blue', purple: 'purple', handwritten: 'handwritten', golden: 'golden' };
+            const themeName = themeNames[d.theme] || 'rose';
+            const expiry = d.expiresAt ? new Date(d.expiresAt).toLocaleString() : '';
+            const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>
+                body{margin:0;padding:32px;background:#fff1f2;font-family:Georgia,serif;color:#334155}.wrap{max-width:760px;margin:auto;background:white;border:1px solid #fecdd3;border-radius:24px;padding:40px;box-shadow:0 20px 50px rgba(15,23,42,.12)}
+                h1{margin:0 0 8px;color:#be123c;font-size:28px}.from{color:#e11d48;font:600 13px Arial,sans-serif;margin-bottom:28px}.body{font-size:18px;line-height:1.8;font-style:italic;white-space:normal}.sign{margin-top:32px;color:#e11d48;font-weight:700}.photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:24px 0}.photos img{width:100%;max-height:300px;object-fit:cover;border-radius:14px;border:4px solid white;box-shadow:0 8px 20px rgba(15,23,42,.12)}.note{margin-top:28px;padding-top:14px;border-top:1px solid #ffe4e6;font:600 11px Arial,sans-serif;color:#94a3b8}@media print{body{background:white;padding:0}.wrap{box-shadow:none;border:0}}
+            </style></head><body><main class="wrap"><h1>${title}</h1><div class="from">Private message from ${sender}</div>${photoHtml ? `<div class="photos">${photoHtml}</div>` : ''}<div class="body">${body}</div><div class="sign">${sign}</div>${expiry ? `<div class="note">Downloaded before this private letter expired on ${escapeHtml(expiry)}.</div>` : ''}</main></body></html>`;
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const safeRecipient = String(d.recipient || 'love-letter').replace(/[^a-z0-9_-]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'love-letter';
+            a.href = url;
+            a.download = `${safeRecipient}-love-letter.html`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
 
         // Exact flower specifications for all 5 templates
         const themes = {
@@ -998,6 +1064,7 @@
         }
 
         function goToCreatorHome() {
+            currentLetterData = null;
             stopLetterMusic();
             window.location.hash = '';
             document.getElementById('createView').classList.remove('hidden');
@@ -1276,6 +1343,7 @@
                 if (layout !== 'none' && !photos.length) { alertBox('Add at least one photo, or set the photo template to "No photos".'); return; }
                 if (photos.join('').length > 800000) { alertBox('Those photos are too large. Try fewer or smaller photos.'); return; }
 
+                const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
                 const payload = {
                     photos, layout,
                     tint: document.getElementById('photoTint').value,
@@ -1286,43 +1354,35 @@
                     sign: document.getElementById('signOff').value,
                     avatar: document.getElementById('selectedCatUrl').value,
                     music: '',
-                    theme: document.getElementById('themeSelect').value
+                    theme: document.getElementById('themeSelect').value,
+                    expiresAt
                 };
 
                 // Preset songs are already part of the deployed site. Uploaded songs
-                // are sent to Firebase Storage so recipients can access them by URL.
+                // go to Supabase Storage and are cleaned up automatically after 24 hours.
                 if (selectedMusicFile) {
                     if (typeof window.fbUploadMusic !== 'function') {
-                        throw new Error('Firebase Storage is not ready yet. Please wait a moment and try again.');
+                        throw new Error('Supabase music storage is not ready yet. Please wait a moment and try again.');
                     }
                     if (publishBtn) {
                         publishBtn.dataset.originalText = publishBtn.innerHTML;
                         publishBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading music…';
                     }
                     alertBox('Uploading your music… please wait');
-                    payload.music = await window.fbUploadMusic(selectedMusicFile);
+                    const upload = await window.fbUploadMusic(selectedMusicFile);
+                    payload.music = upload.url;
                 } else if (selectedMusicUrl) {
                     payload.music = selectedMusicUrl;
                 }
 
-                // Encode the letter after the music URL is known.
-                let slug = await encodeLetterPayload(payload);
+                // New letters use a self-contained expiring link. No Firestore record is
+                // needed, so the letter itself is not permanently stored on the server.
+                const slug = await encodeLetterPayload(payload);
                 if (!slug) throw new Error('Could not encode the letter.');
 
-                if (typeof window.fbSaveLetter === 'function') {
-                    try {
-                        const shortSlug = await Promise.race([
-                            window.fbSaveLetter(slug),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase save timed out')), 9000))
-                        ]);
-                        if (shortSlug) slug = shortSlug;
-                    } catch (err) {
-                        // Firebase is only used to shorten the URL. The compressed letter
-                        // itself remains in the hash, so publishing can still work without it.
-                        console.warn('Firebase short-link save unavailable; using self-contained link:', err);
-                    }
-                }
-
+                // The letter is stored only in this expiring URL. Uploaded music is
+                // stored under Supabase Storage's letters/ prefix and the scheduled
+                // cleanup job removes objects older than 24 hours.
                 currentActiveSlug = slug;
                 const fullUrl = window.location.href.split('#')[0] + '#' + slug;
                 const linkInput = document.getElementById('generatedLinkInput');
@@ -1443,7 +1503,24 @@
                 }
                 const data = await decodeLetterPayload(raw);
                 if(data) {
+                    if (data.expiresAt && Date.now() >= data.expiresAt) {
+                        stopLetterMusic();
+                        document.getElementById('createView').classList.add('hidden');
+                        document.querySelector('header').classList.add('hidden');
+                        const dedicatedView = document.getElementById('dedicatedLetterView');
+                        dedicatedView.classList.remove('hidden');
+                        const expiredState = document.getElementById('dedicatedExpiredState');
+                        if (expiredState) expiredState.classList.remove('hidden');
+                        const envelopeState = document.getElementById('dedicatedEnvelopeState');
+                        const letterState = document.getElementById('dedicatedLetterState');
+                        if (envelopeState) envelopeState.classList.add('hidden');
+                        if (letterState) letterState.classList.add('hidden');
+                        return;
+                    }
+                    currentLetterData = data;
                     currentActiveSlug = encoded;
+                    const expiredState = document.getElementById('dedicatedExpiredState');
+                    if (expiredState) expiredState.classList.add('hidden');
                     document.getElementById('createView').classList.add('hidden');
                     document.getElementById('successModal').classList.add('hidden');
                     document.querySelector('header').classList.add('hidden');
@@ -1481,6 +1558,10 @@
                     document.getElementById('dedicatedSenderSub').innerText = data.sender;
                     document.getElementById('dedicatedBodyContent').innerText = data.body;
                     document.getElementById('dedicatedSignOff').innerText = data.sign;
+                    const expiryText = document.getElementById('dedicatedExpiryText');
+                    if (expiryText) expiryText.textContent = getLetterExpiryText(data.expiresAt);
+                    const downloadBtn = document.getElementById('dedicatedDownloadBtn');
+                    if (downloadBtn) downloadBtn.disabled = false;
                     applyPhotoStyle(data);
 
                     stopLetterMusic();
@@ -1526,6 +1607,13 @@
                 }
             }
         }
+
+        setInterval(() => {
+            if (!currentLetterData?.expiresAt) return;
+            const el = document.getElementById('dedicatedExpiryText');
+            if (el) el.textContent = getLetterExpiryText(currentLetterData.expiresAt);
+            if (Date.now() >= currentLetterData.expiresAt && location.hash) checkHashRoute();
+        }, 30000);
 
         window.addEventListener('load', () => {
             renderCatGrid();
@@ -1635,7 +1723,7 @@
                 updateProgress('Uploading your music… 100%');
                 const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_MUSIC_BUCKET}/${path.split('/').map(encodeURIComponent).join('/')}`;
                 if (!publicUrl) throw new Error('Supabase uploaded the music but no public URL was created.');
-                return publicUrl;
+                return { url: publicUrl, path };
             } catch (err) {
                 clearTimeout(timeout);
                 if (err?.name === 'AbortError') {
@@ -1646,6 +1734,8 @@
             }
         };
 
+        // Legacy Firebase short-link helpers remain below only so older published
+        // links can still be opened. New letters do not create Firestore records.
         // Stores the compressed letter and returns a short code like "k7x2m9ab".
         window.fbSaveLetter = async (encoded) => {
             let lastErr;
