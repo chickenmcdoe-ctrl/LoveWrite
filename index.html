@@ -382,7 +382,6 @@
 
                             <!-- Preview Opened Letter -->
                             <div id="simLetter" class="hidden relative z-20 w-full max-w-sm bg-white/95 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-rose-200 text-left transform scale-95 opacity-0 transition-all duration-700 max-h-[480px] overflow-y-auto">
-                                <div id="simPhotoTop" class="hidden flex-wrap justify-center gap-2 mb-4"></div>
                                 <div class="flex gap-2 items-start">
                                     <div id="simPhotoLeft" class="hidden flex-col gap-2 w-12 shrink-0 pt-2"></div>
                                     <div class="flex-1 min-w-0">
@@ -392,6 +391,7 @@
                                                 <div>
                                                     <h4 id="simRecipientDisplay" class="font-serif font-bold text-slate-800">My Dearest</h4>
                                                     <span id="simLockTag" class="text-xs text-rose-500 font-semibold"><i class="fa-solid fa-lock text-xs mr-1"></i> Private Love Letter</span>
+                                                    <div id="simPhotoTop" class="hidden flex-wrap justify-start gap-2 mt-2"></div>
                                                 </div>
                                             </div>
                                             <button type="button" onclick="toggleSimEnvelope()" class="text-slate-400 hover:text-slate-600 text-xs bg-rose-50 px-2 py-1 rounded-md cursor-pointer">Close</button>
@@ -520,7 +520,7 @@
                     </div>
 
                     <!-- Opened Letter State -->
-                    <div id="dedicatedLetterState" class="hidden opacity-0 transform scale-95 transition-all duration-700 relative z-20 w-full bg-white/95 backdrop-blur-md p-8 sm:p-10 rounded-3xl shadow-2xl border border-rose-200 text-left"><div id="colTop" class="hidden flex-wrap justify-center gap-4 mb-6"></div><div class="flex gap-3 items-start"><div id="colL" class="hidden flex-col gap-4 w-14 sm:w-24 shrink-0 pt-4"></div><div class="flex-1 min-w-0">
+                    <div id="dedicatedLetterState" class="hidden opacity-0 transform scale-95 transition-all duration-700 relative z-20 w-full bg-white/95 backdrop-blur-md p-8 sm:p-10 rounded-3xl shadow-2xl border border-rose-200 text-left"><div class="flex gap-3 items-start"><div id="colL" class="hidden flex-col gap-4 w-14 sm:w-24 shrink-0 pt-4"></div><div class="flex-1 min-w-0">
                         <div class="flex items-center space-x-4 mb-6 border-b border-rose-100 pb-4">
                             <img id="dedicatedLetterAvatar" src="" class="w-14 h-14 rounded-full object-cover border-2 border-rose-300 shadow-sm" alt="Avatar" crossorigin="anonymous">
                             <div>
@@ -528,6 +528,7 @@
                                 <span class="text-xs text-rose-500 font-semibold flex items-center mt-0.5">
                                     <i class="fa-solid fa-lock mr-1"></i> Private Message from <span id="dedicatedSenderSub" class="font-bold ml-1"></span>
                                 </span>
+                                <div id="colTop" class="hidden flex-wrap justify-start gap-3 mt-2"></div>
                             </div>
                         </div>
 
