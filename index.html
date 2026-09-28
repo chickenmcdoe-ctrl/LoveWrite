@@ -824,12 +824,19 @@
 
         function applySimulatorPhotoStyle() {
             const sim = document.getElementById('simLetter');
-            if (!sim) return;
+            const simContainer = document.getElementById('simContainer');
+            if (!sim || !simContainer) return;
             const ids = ['simPhotoTop', 'simPhotoBottom', 'simPhotoLeft', 'simPhotoRight'];
             ids.forEach(id => { const e = document.getElementById(id); e.innerHTML = ''; e.classList.add('hidden'); });
+            // The photo template background belongs to the preview/page, not the letter card itself.
             sim.style.backgroundImage = '';
             sim.style.backgroundSize = '';
             sim.style.backgroundPosition = '';
+            sim.style.backgroundRepeat = '';
+            simContainer.style.backgroundImage = '';
+            simContainer.style.backgroundSize = '';
+            simContainer.style.backgroundPosition = '';
+            simContainer.style.backgroundRepeat = 'no-repeat';
 
             const layout = document.getElementById('photoLayout')?.value || 'none';
             const photos = letterPhotos.slice(0, 4);
@@ -838,9 +845,10 @@
             if (layout === 'background') {
                 const a = (+document.getElementById('photoStrength').value || 65) / 100;
                 const t = TINTS[document.getElementById('photoTint').value] || TINTS.pink;
-                sim.style.backgroundImage = `linear-gradient(160deg, rgba(${t},${a}), rgba(${t},${(a * 0.55).toFixed(2)})), url("${photos[0]}")`;
-                sim.style.backgroundSize = 'cover';
-                sim.style.backgroundPosition = 'center';
+                simContainer.style.backgroundImage = `linear-gradient(160deg, rgba(${t},${a}), rgba(${t},${(a * 0.55).toFixed(2)})), url("${photos[0]}")`;
+                simContainer.style.backgroundSize = 'cover';
+                simContainer.style.backgroundPosition = 'center';
+                simContainer.style.backgroundRepeat = 'no-repeat';
                 return;
             }
 
