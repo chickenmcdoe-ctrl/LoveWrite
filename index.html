@@ -1160,18 +1160,34 @@
                     theme: document.getElementById('themeSelect').value
                 };
 
+                // Encode first. If Firebase is unavailable or its rules reject the write,
+                // fall back to the self-contained link instead of treating publishing as a failure.
                 let slug = await encodeLetterPayload(payload);
-                if (window.fbSaveLetter) {
-                    try { slug = await window.fbSaveLetter(slug); }
-                    catch (err) { console.warn('Short link unavailable, using long link:', err); }
+                if (!slug) throw new Error('Could not encode the letter.');
+
+                if (typeof window.fbSaveLetter === 'function') {
+                    try {
+                        const shortSlug = await Promise.race([
+                            window.fbSaveLetter(slug),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase save timed out')), 9000))
+                        ]);
+                        if (shortSlug) slug = shortSlug;
+                    } catch (err) {
+                        // Firebase is only used to shorten the URL. The compressed letter
+                        // itself remains in the hash, so publishing can still work without it.
+                        console.warn('Firebase short-link save unavailable; using self-contained link:', err);
+                    }
                 }
+
                 currentActiveSlug = slug;
                 const fullUrl = window.location.href.split('#')[0] + '#' + slug;
-                document.getElementById('generatedLinkInput').value = fullUrl;
+                const linkInput = document.getElementById('generatedLinkInput');
+                if (!linkInput) throw new Error('The generated-link field is missing.');
+                linkInput.value = fullUrl;
                 document.getElementById('successModal').classList.remove('hidden');
             } catch (err) {
                 console.error('Publish failed:', err);
-                alertBox('I could not publish the letter. Please try again. If it still fails, check that the required fields are filled in.');
+                alertBox(`I could not publish the letter: ${err?.message || 'Unknown error'}`);
             } finally {
                 if (publishBtn) { publishBtn.disabled = false; publishBtn.classList.remove('opacity-70'); }
             }
