@@ -146,7 +146,7 @@
                                 <label class="block text-sm font-bold text-slate-700 mb-2">
                                     <i class="fa-solid fa-user text-rose-500 mr-2"></i> Your Name (Sender)
                                 </label>
-                                <input type="text" id="senderName" required placeholder="e.g. Julian"
+                                <input type="text" id="senderName" required placeholder="e.g. Julian" oninput="updateSimulatorPreview()"
                                     class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-rose-50/30">
                             </div>
                             <!-- Recipient Name -->
@@ -154,7 +154,7 @@
                                 <label class="block text-sm font-bold text-slate-700 mb-2">
                                     <i class="fa-solid fa-heart text-rose-500 mr-2"></i> Recipient Name
                                 </label>
-                                <input type="text" id="recipientName" required placeholder="e.g. Eleanor"
+                                <input type="text" id="recipientName" required placeholder="e.g. Eleanor" oninput="updateSimulatorPreview()"
                                     class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-rose-50/30">
                             </div>
                         </div>
@@ -165,7 +165,7 @@
                                 <span><i class="fa-solid fa-feather text-rose-500 mr-2"></i> Love Letter Message</span>
                                 <span class="text-xs font-normal text-slate-400">Customizable message</span>
                             </label>
-                            <textarea id="letterBody" rows="6" required
+                            <textarea id="letterBody" rows="6" required oninput="updateSimulatorPreview()"
                                 class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-rose-50/30 leading-relaxed"></textarea>
                         </div>
 
@@ -174,7 +174,7 @@
                             <label class="block text-sm font-bold text-slate-700 mb-2">
                                 <i class="fa-solid fa-signature text-rose-500 mr-2"></i> Sign-off Phrase
                             </label>
-                            <input type="text" id="signOff" required
+                            <input type="text" id="signOff" required oninput="updateSimulatorPreview()"
                                 class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-rose-50/30">
                         </div>
 
@@ -184,18 +184,18 @@
                                 <i class="fa-solid fa-cat text-rose-500 mr-2"></i> Select Companion Photo / Sticker or Upload
                             </label>
                             <div class="grid grid-cols-3 gap-3 mb-4">
-                                <label class="cursor-pointer border-2 rounded-xl p-3 text-center transition border-rose-500 bg-rose-50/50 flex flex-col items-center justify-center cat-option" onclick="selectCatPreset(0)">
-                                    <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&auto=format&fit=crop&q=80" class="w-16 h-16 object-cover rounded-full mb-2 shadow-sm" alt="Cat 1" crossorigin="anonymous">
-                                    <span class="text-xs font-bold text-slate-700">Fluffy Kitten</span>
-                                </label>
-                                <label class="cursor-pointer border-2 rounded-xl p-3 text-center transition border-slate-200 hover:border-rose-200 flex flex-col items-center justify-center cat-option" onclick="selectCatPreset(1)">
-                                    <img src="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=200&auto=format&fit=crop&q=80" class="w-16 h-16 object-cover rounded-full mb-2 shadow-sm" alt="Cat 2" crossorigin="anonymous">
-                                    <span class="text-xs font-bold text-slate-700">Sweet Tabby</span>
-                                </label>
-                                <label class="cursor-pointer border-2 rounded-xl p-3 text-center transition border-slate-200 hover:border-rose-200 flex flex-col items-center justify-center cat-option" onclick="selectCatPreset(2)">
-                                    <img src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=200&auto=format&fit=crop&q=80" class="w-16 h-16 object-cover rounded-full mb-2 shadow-sm" alt="Cat 3" crossorigin="anonymous">
-                                    <span class="text-xs font-bold text-slate-700">Playful Kitty</span>
-                                </label>
+                                <div class="cursor-pointer border-2 rounded-xl p-3 text-center transition border-rose-500 bg-rose-50/50 flex flex-col items-center justify-center cat-option" onclick="selectCatPreset(0)">
+                                    <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&auto=format&fit=crop&q=80" class="w-16 h-16 object-cover rounded-full mb-2 shadow-sm pointer-events-none" alt="Cat 1" crossorigin="anonymous">
+                                    <span class="text-xs font-bold text-slate-700 pointer-events-none">Fluffy Kitten</span>
+                                </div>
+                                <div class="cursor-pointer border-2 rounded-xl p-3 text-center transition border-slate-200 hover:border-rose-200 flex flex-col items-center justify-center cat-option" onclick="selectCatPreset(1)">
+                                    <img src="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=200&auto=format&fit=crop&q=80" class="w-16 h-16 object-cover rounded-full mb-2 shadow-sm pointer-events-none" alt="Cat 2" crossorigin="anonymous">
+                                    <span class="text-xs font-bold text-slate-700 pointer-events-none">Sweet Tabby</span>
+                                </div>
+                                <div class="cursor-pointer border-2 rounded-xl p-3 text-center transition border-slate-200 hover:border-rose-200 flex flex-col items-center justify-center cat-option" onclick="selectCatPreset(2)">
+                                    <img src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=200&auto=format&fit=crop&q=80" class="w-16 h-16 object-cover rounded-full mb-2 shadow-sm pointer-events-none" alt="Cat 3" crossorigin="anonymous">
+                                    <span class="text-xs font-bold text-slate-700 pointer-events-none">Playful Kitty</span>
+                                </div>
                             </div>
                             <input type="hidden" id="selectedCatUrl" value="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80">
                         </div>
@@ -211,10 +211,10 @@
                                 ondragleave="handleDragLeave(event)" 
                                 ondrop="handleFileDrop(event)"
                                 class="border-2 border-dashed border-rose-300 hover:border-rose-500 bg-rose-50/40 hover:bg-rose-50 rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2">
-                                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-xl shadow-sm">
+                                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-xl shadow-sm pointer-events-none">
                                     <i class="fa-solid fa-image"></i>
                                 </div>
-                                <div>
+                                <div class="pointer-events-none">
                                     <p class="text-sm font-bold text-slate-700">Click to browse or drop image here</p>
                                     <p class="text-xs text-slate-400">Supports JPG, PNG, GIF</p>
                                 </div>
@@ -234,12 +234,21 @@
                             </select>
                         </div>
 
+                        <!-- YouTube Link -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">
+                                <i class="fa-brands fa-youtube text-rose-500 mr-2"></i> YouTube Song / Video Link <span class="text-slate-400 font-medium">(optional)</span>
+                            </label>
+                            <input type="url" id="youtubeLink" placeholder="Paste a YouTube link, e.g. https://youtu.be/dQw4w9WgXcQ" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-rose-50/30">
+                            <p class="text-xs text-slate-500 mt-1.5">Plays when your recipient opens the letter. Overrides the background track above.</p>
+                        </div>
+
                         <!-- Theme Styling Selection -->
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">
                                 <i class="fa-solid fa-palette text-rose-500 mr-2"></i> Template & Floral Aesthetic
                             </label>
-                            <select id="themeSelect" onchange="updateThemeStyle(this.value)" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-rose-50/30">
+                            <select id="themeSelect" onchange="updateThemeStyle(this.value); updateSimulatorPreview();" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition font-medium text-slate-800 bg-rose-50/30">
                                 <option value="pink">1. 🌹 Pink Garden (Lilies, Roses, Tulips)</option>
                                 <option value="blue">2. 🪷 Blue Serenade (Blue Lotus, Blue Hydrangea, Blue Cornflower)</option>
                                 <option value="purple">3. 🪻 Purple Velvet (Lavender, Purple Iris, Lilac)</option>
@@ -283,7 +292,7 @@
                                 <h3 id="simTitle" class="text-2xl font-serif font-bold text-slate-800 mb-2">A Special Message For You</h3>
                                 <p id="simSubtitle" class="text-slate-600 text-sm max-w-xs mb-8">Prepared with love by your partner.</p>
                                 
-                                <button id="simOpenBtn" onclick="toggleSimEnvelope()" class="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold px-8 py-3.5 rounded-full shadow-lg shadow-rose-300 flex items-center space-x-3 transition transform hover:scale-105 cursor-pointer z-20">
+                                <button type="button" id="simOpenBtn" onclick="toggleSimEnvelope()" class="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold px-8 py-3.5 rounded-full shadow-lg shadow-rose-300 flex items-center space-x-3 transition transform hover:scale-105 cursor-pointer z-20">
                                     <i class="fa-solid fa-envelope-open-text text-xl"></i>
                                     <span>Open Your Letter</span>
                                 </button>
@@ -299,7 +308,7 @@
                                             <span id="simLockTag" class="text-xs text-rose-500 font-semibold"><i class="fa-solid fa-lock text-xs mr-1"></i> Private Love Letter</span>
                                         </div>
                                     </div>
-                                    <button onclick="toggleSimEnvelope()" class="text-slate-400 hover:text-slate-600 text-xs bg-rose-50 px-2 py-1 rounded-md cursor-pointer">Close</button>
+                                    <button type="button" onclick="toggleSimEnvelope()" class="text-slate-400 hover:text-slate-600 text-xs bg-rose-50 px-2 py-1 rounded-md cursor-pointer">Close</button>
                                 </div>
 
                                 <div id="simBodyDisplay" class="text-slate-700 font-medium text-xs leading-relaxed mb-4 whitespace-pre-line italic font-serif">
@@ -334,7 +343,7 @@
                     </label>
                     <div class="flex items-center space-x-2">
                         <input type="text" id="generatedLinkInput" readonly class="w-full bg-white px-3 py-2.5 rounded-xl border border-rose-200 text-xs font-mono text-slate-700 outline-none select-all">
-                        <button onclick="copyGeneratedLink()" class="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-rose-200 transition flex items-center space-x-1 shrink-0 cursor-pointer">
+                        <button type="button" onclick="copyGeneratedLink()" class="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-rose-200 transition flex items-center space-x-1 shrink-0 cursor-pointer">
                             <i class="fa-solid fa-copy"></i>
                             <span>Copy</span>
                         </button>
@@ -342,11 +351,11 @@
                 </div>
 
                 <div class="flex items-center space-x-3 pt-2">
-                    <button onclick="openMyPublishedLetter()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl text-xs transition flex items-center justify-center space-x-2 shadow-lg cursor-pointer">
+                    <button type="button" onclick="openMyPublishedLetter()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl text-xs transition flex items-center justify-center space-x-2 shadow-lg cursor-pointer">
                         <i class="fa-solid fa-eye"></i>
                         <span>Preview As Recipient</span>
                     </button>
-                    <button onclick="closeSuccessModal()" class="px-5 py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl text-xs transition cursor-pointer">
+                    <button type="button" onclick="closeSuccessModal()" class="px-5 py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl text-xs transition cursor-pointer">
                         Create Another
                     </button>
                 </div>
@@ -362,7 +371,7 @@
                         <div class="w-3 h-3 rounded-full bg-rose-500"></div>
                         <span id="dedicatedBadgeText" class="text-xs font-bold text-slate-700">🔒 100% Private Secure Love Letter</span>
                     </div>
-                    <button onclick="goToCreatorHome()" class="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg transition flex items-center space-x-1 cursor-pointer">
+                    <button type="button" onclick="goToCreatorHome()" class="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg transition flex items-center space-x-1 cursor-pointer">
                         <i class="fa-solid fa-plus mr-1"></i> Create Your Own
                     </button>
                 </div>
@@ -375,6 +384,9 @@
                         <div class="absolute bottom-10 right-6 text-pink-400 text-2xl float-animation" style="animation-delay: 2s;">🌷</div>
                         <div class="absolute top-1/2 right-4 text-rose-400 text-3xl float-animation" style="animation-delay: 1s;">🌸</div>
                     </div>
+
+                    <!-- Hidden YouTube audio player (preloaded, never visible) -->
+                    <div id="dedicatedYTWrap" aria-hidden="true" style="position:fixed;bottom:0;right:0;width:200px;height:200px;opacity:0.01;pointer-events:none;z-index:-1;overflow:hidden;"><div id="dedicatedYTPlayer"></div></div>
 
                     <!-- Audio Element -->
                     <audio id="dedicatedAudio" loop>
@@ -389,7 +401,7 @@
                         <h2 id="dedicatedTitle" class="text-2xl font-serif font-bold text-slate-800 mb-2">A Special Letter For You</h2>
                         <p class="text-slate-600 text-sm mb-6">Published privately by <span id="dedicatedSenderLabel" class="font-bold text-rose-600"></span></p>
                         
-                        <button id="dedicatedOpenBtn" onclick="openDedicatedLetter()" class="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold py-4 rounded-full shadow-lg shadow-rose-300 flex items-center justify-center space-x-3 transition transform hover:scale-105 text-base cursor-pointer z-20">
+                        <button type="button" id="dedicatedOpenBtn" onclick="openDedicatedLetter()" class="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold py-4 rounded-full shadow-lg shadow-rose-300 flex items-center justify-center space-x-3 transition transform hover:scale-105 text-base cursor-pointer z-20">
                             <i class="fa-solid fa-envelope-open-text text-xl"></i>
                             <span>Open Your Private Letter</span>
                         </button>
@@ -413,7 +425,7 @@
 
                         <div class="flex items-center justify-between pt-4 border-t border-rose-100">
                             <span id="dedicatedSignOff" class="font-serif font-bold text-rose-600 text-sm">Forever Yours ❤️</span>
-                            <button id="dedicatedCelebrateBtn" onclick="triggerConfetti()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-4 py-2 rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                            <button type="button" id="dedicatedCelebrateBtn" onclick="triggerConfetti()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-4 py-2 rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                                 <span>Celebrate</span>
                             </button>
@@ -447,6 +459,85 @@
             }
         }
 
+
+        // ---- YouTube helpers ----
+        function parseYouTube(input) {
+            if (!input) return null;
+            input = input.trim();
+            const idRe = /^[\w-]{11}$/;
+            if (idRe.test(input)) return { id: input, start: 0 };
+            let url;
+            try { url = new URL(/^https?:\/\//i.test(input) ? input : 'https://' + input); } catch (e) { return null; }
+            const host = url.hostname.replace(/^www\.|^m\.|^music\./, '');
+            let id = null;
+            if (host === 'youtu.be') id = url.pathname.split('/')[1];
+            else if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+                if (url.pathname === '/watch') id = url.searchParams.get('v');
+                else {
+                    const m = url.pathname.match(/^\/(?:embed|shorts|live|v)\/([\w-]{11})/);
+                    if (m) id = m[1];
+                }
+            }
+            if (!id || !idRe.test(id)) return null;
+            return { id, start: parseYTTime(url.searchParams.get('t') || url.searchParams.get('start')) };
+        }
+
+        function parseYTTime(t) {
+            if (!t) return 0;
+            if (/^\d+$/.test(t)) return parseInt(t, 10);
+            const m = t.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/);
+            return m ? (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0) : 0;
+        }
+
+        let currentYT = null, ytPlayer = null, ytReady = false, ytWantsPlay = false, ytFailed = false, ytToken = 0;
+
+        function loadYTApi(cb) {
+            if (window.YT && YT.Player) { cb(); return; }
+            const prev = window.onYouTubeIframeAPIReady;
+            window.onYouTubeIframeAPIReady = () => { if (prev) prev(); cb(); };
+            if (!document.getElementById('ytApiScript')) {
+                const s = document.createElement('script');
+                s.id = 'ytApiScript';
+                s.src = 'https://www.youtube.com/iframe_api';
+                document.head.appendChild(s);
+            }
+        }
+
+        // Runs as soon as the letter link loads, so the song is buffered before the recipient clicks.
+        function preloadYouTube() {
+            if (!currentYT) return;
+            const token = ++ytToken;
+            ytReady = false; ytWantsPlay = false; ytFailed = false;
+            if (ytPlayer && ytPlayer.destroy) { try { ytPlayer.destroy(); } catch (e) {} ytPlayer = null; }
+            document.getElementById('dedicatedYTWrap').innerHTML = '<div id="dedicatedYTPlayer"></div>';
+            loadYTApi(() => {
+                if (token !== ytToken) return;
+                const vars = { autoplay: 0, controls: 0, rel: 0, playsinline: 1, loop: 1, playlist: currentYT.id,
+                               start: currentYT.start || 0, disablekb: 1, fs: 0 };
+                if (/^https?:$/.test(location.protocol)) vars.origin = location.origin;
+                ytPlayer = new YT.Player('dedicatedYTPlayer', {
+                    width: '200', height: '200', videoId: currentYT.id, playerVars: vars,
+                    events: {
+                        onReady: () => { ytReady = true; if (ytWantsPlay) ytPlayer.playVideo(); },
+                        onError: () => { ytFailed = true; fallbackToBgMusic(); }
+                    }
+                });
+            });
+        }
+
+        // Called synchronously from the user's click on the envelope.
+        function playYouTube() {
+            if (!currentYT) return;
+            ytWantsPlay = true;
+            if (ytFailed) { fallbackToBgMusic(); return; }
+            if (ytReady && ytPlayer) ytPlayer.playVideo();
+        }
+
+        function fallbackToBgMusic() {
+            const audio = document.getElementById('dedicatedAudio');
+            if (ytWantsPlay && audio) audio.play().catch(() => {});
+        }
+
         let currentActiveSlug = '';
 
         // Exact flower specifications for all 5 templates
@@ -457,7 +548,6 @@
                 border: "border-rose-200",
                 textPrimary: "text-rose-600",
                 buttonBg: "bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white shadow-rose-300",
-                // 1st Template: Roses, Lilies, Tulips
                 floatingIcons: ['🌹', '🌷', '🌸', '💐', '🌺'],
                 bodyStyle: "italic font-serif text-slate-700 leading-relaxed",
                 cardBg: "bg-white/95 backdrop-blur-md"
@@ -468,7 +558,6 @@
                 border: "border-blue-200",
                 textPrimary: "text-blue-600",
                 buttonBg: "bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-blue-300",
-                // 2nd Template: Blue Lotus, Blue Hydrangea, Blue Cornflower (at least 3 blue flowers)
                 floatingIcons: ['🪷', '💠', '🦋', '💙', '🌊'],
                 bodyStyle: "font-serif text-blue-900 leading-relaxed",
                 cardBg: "bg-white/95 backdrop-blur-md"
@@ -479,7 +568,6 @@
                 border: "border-purple-200",
                 textPrimary: "text-purple-600",
                 buttonBg: "bg-gradient-to-r from-purple-500 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-700 text-white shadow-purple-300",
-                // 3rd Template: Lavender, Purple Iris, Lilac (at least 3 purple flowers)
                 floatingIcons: ['🪻', '💜', '🔮', '🌿', '🍇'],
                 bodyStyle: "font-serif text-purple-950 italic leading-relaxed",
                 cardBg: "bg-white/95 backdrop-blur-md"
@@ -490,7 +578,6 @@
                 border: "border-amber-400",
                 textPrimary: "text-amber-900",
                 buttonBg: "bg-gradient-to-r from-amber-700 to-yellow-700 hover:from-amber-800 hover:to-yellow-800 text-white shadow-amber-300",
-                // 4th Template: Legit handwritten letter with hand-drawn vector flower doodles
                 floatingIcons: [
                     `<svg class="w-8 h-8 text-amber-700/60 transform -rotate-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v20m0-20c-3 3-7 3-10 0m10 0c3 3 7 3 10 0M12 12c-3-3-3-7 0-10m0 10c3-3 3-7 0-10m0 10c-3 3-3 7 0 10m0-10c3 3 3 7 0 10"></path></svg>`,
                     `<svg class="w-10 h-10 text-rose-700/50 transform rotate-45" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>`,
@@ -505,7 +592,6 @@
                 border: "border-amber-300",
                 textPrimary: "text-amber-700",
                 buttonBg: "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white shadow-amber-300",
-                // 5th Template: Golden Twilight & Starlight Blossoms
                 floatingIcons: ['✨', '🌟', '🌻', '💛', '🍯'],
                 bodyStyle: "font-serif text-amber-950 italic font-medium leading-relaxed",
                 cardBg: "bg-white/95 backdrop-blur-md"
@@ -538,6 +624,12 @@
 
         function loadTemplate(number) {
             const themeSelect = document.getElementById('themeSelect');
+            if(number === 1) { themeSelect.value = 'pink'; loadSample('romantic'); }
+            else if(number === 2) { themeSelect.value = 'blue'; loadSample('blue'); }
+            else if(number === 3) { themeSelect.value = 'purple'; loadSample('purple'); }
+            else if(number === 4) { themeSelect.value = 'handwritten'; loadSample('handwritten'); }
+            else if(number === 5) { themeSelect.value = 'golden'; loadSample('golden'); }
+
             const btnList = document.querySelectorAll('.template-btn');
             btnList.forEach((btn, idx) => {
                 if(idx === number - 1) {
@@ -549,32 +641,16 @@
                 }
             });
 
-            if(number === 1) {
-                loadSample('romantic');
-            } else if(number === 2) {
-                loadSample('blue');
-            } else if(number === 3) {
-                loadSample('purple');
-            } else if(number === 4) {
-                loadSample('handwritten');
-            } else if(number === 5) {
-                loadSample('golden');
-            }
             updateThemeStyle(themeSelect.value);
             updateSimulatorPreview();
         }
 
         function goToCreatorHome() {
             window.location.hash = '';
-            const createView = document.getElementById('createView');
-            const dedicatedView = document.getElementById('dedicatedLetterView');
-            const headerNav = document.querySelector('header');
-            const successModal = document.getElementById('successModal');
-
-            createView.classList.remove('hidden');
-            dedicatedView.classList.add('hidden');
-            headerNav.classList.remove('hidden');
-            successModal.classList.add('hidden');
+            document.getElementById('createView').classList.remove('hidden');
+            document.getElementById('dedicatedLetterView').classList.add('hidden');
+            document.querySelector('header').classList.remove('hidden');
+            document.getElementById('successModal').classList.add('hidden');
         }
 
         const catPresets = [
@@ -613,5 +689,255 @@
             }
         }
 
-        // Drag and drop handlers
-<!-- ... existing code ... %>
+        function handleDragOver(e) { e.preventDefault(); e.stopPropagation(); }
+        function handleDragLeave(e) { e.preventDefault(); e.stopPropagation(); }
+        function handleFileDrop(e) {
+            e.preventDefault(); e.stopPropagation();
+            if(e.dataTransfer.files && e.dataTransfer.files[0]) {
+                processImageFile(e.dataTransfer.files[0]);
+            }
+        }
+        function handleFileSelect(e) {
+            if(e.target.files && e.target.files[0]) {
+                processImageFile(e.target.files[0]);
+            }
+        }
+        function processImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                updateCustomCat(evt.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function loadSample(type) {
+            const samples = {
+                romantic: {
+                    sender: "Julian", recipient: "Eleanor",
+                    body: "From the very first moment our eyes met, my world shifted into something so much brighter. Every single day with you feels like a gentle celebration of love.",
+                    sign: "Forever Yours ❤️", theme: "pink"
+                },
+                blue: {
+                    sender: "Matteo", recipient: "Seraphina",
+                    body: "Like the calm deep blue ocean and starlit nights, my love for you is endless and unwavering. You are my peace, my shelter, and my greatest joy.",
+                    sign: "With All My Heart 💙", theme: "blue"
+                },
+                purple: {
+                    sender: "Cassian", recipient: "Evangeline",
+                    body: "In a universe full of fleeting moments, finding you was my absolute favorite magic. You make my heart bloom in the softest purple hues.",
+                    sign: "Always & Forever 💜", theme: "purple"
+                },
+                handwritten: {
+                    sender: "Oliver", recipient: "Charlotte",
+                    body: "My dearest Charlotte,\n\nWords can barely capture how deeply I adore your laugh, your gentle spirit, and every little thing you do. I wrote this just for you.",
+                    sign: "Yours faithfully, Oliver 📜", theme: "handwritten"
+                },
+                golden: {
+                    sender: "Gabriel", recipient: "Aurelia",
+                    body: "You bring golden sunlight into every room you enter. Thank you for being the brightest star in my sky and my favorite person to cherish.",
+                    sign: "Yours in Starlight ✨", theme: "golden"
+                }
+            };
+            const s = samples[type] || samples.romantic;
+            document.getElementById('senderName').value = s.sender;
+            document.getElementById('recipientName').value = s.recipient;
+            document.getElementById('letterBody').value = s.body;
+            document.getElementById('signOff').value = s.sign;
+            document.getElementById('themeSelect').value = s.theme;
+            updateThemeStyle(s.theme);
+            updateSimulatorPreview();
+        }
+
+        function updateSimulatorPreview() {
+            const sender = document.getElementById('senderName').value || "Someone Special";
+            const recipient = document.getElementById('recipientName').value || "My Dearest";
+            const body = document.getElementById('letterBody').value || "Your love letter message will appear here...";
+            const sign = document.getElementById('signOff').value || "Forever Yours ❤️";
+            const avatarUrl = document.getElementById('selectedCatUrl').value;
+
+            document.getElementById('simAvatar').src = avatarUrl;
+            document.getElementById('simLetterAvatar').src = avatarUrl;
+            document.getElementById('simTitle').innerText = `A Special Message For ${recipient}`;
+            document.getElementById('simSubtitle').innerText = `Prepared with love by ${sender}.`;
+            document.getElementById('simRecipientDisplay').innerText = `To: ${recipient}`;
+            document.getElementById('simBodyDisplay').innerText = body;
+            document.getElementById('simSignDisplay').innerText = sign;
+        }
+
+        function toggleSimEnvelope() {
+            const env = document.getElementById('simEnvelope');
+            const lettr = document.getElementById('simLetter');
+            if(env.classList.contains('hidden')) {
+                env.classList.remove('hidden');
+                env.style.opacity = '1';
+                env.style.transform = 'scale(1)';
+                lettr.classList.add('hidden');
+                lettr.style.opacity = '0';
+                lettr.style.transform = 'scale(0.95)';
+            } else {
+                env.style.opacity = '0';
+                env.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    env.classList.add('hidden');
+                    lettr.classList.remove('hidden');
+                    setTimeout(() => {
+                        lettr.style.opacity = '1';
+                        lettr.style.transform = 'scale(1)';
+                    }, 50);
+                }, 300);
+            }
+        }
+
+        function handlePublish(e) {
+            e.preventDefault();
+            const ytRaw = document.getElementById('youtubeLink').value.trim();
+            const yt = ytRaw ? parseYouTube(ytRaw) : null;
+            if (ytRaw && !yt) { alertBox("That doesn't look like a valid YouTube link."); return; }
+            const payload = {
+                sender: document.getElementById('senderName').value,
+                recipient: document.getElementById('recipientName').value,
+                body: document.getElementById('letterBody').value,
+                sign: document.getElementById('signOff').value,
+                avatar: document.getElementById('selectedCatUrl').value,
+                music: document.getElementById('bgMusic').value,
+                yt: yt ? yt.id : '',
+                ytStart: yt ? yt.start : 0,
+                theme: document.getElementById('themeSelect').value
+            };
+            const encoded = encodeLetterPayload(payload);
+            currentActiveSlug = encoded;
+            const fullUrl = window.location.href.split('#')[0] + '#' + encoded;
+            document.getElementById('generatedLinkInput').value = fullUrl;
+            document.getElementById('successModal').classList.remove('hidden');
+        }
+
+        function copyGeneratedLink() {
+            const input = document.getElementById('generatedLinkInput');
+            input.select();
+            document.execCommand('copy');
+            alertBox("Link copied to clipboard!");
+        }
+
+        function alertBox(msg) {
+            const div = document.createElement('div');
+            div.className = 'fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl text-xs font-bold animate-in fade-in duration-300';
+            div.innerHTML = `<i class="fa-solid fa-check mr-2 text-rose-400"></i> ${msg}`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.add('hidden');
+        }
+
+        function openMyPublishedLetter() {
+            closeSuccessModal();
+            window.location.hash = '#' + currentActiveSlug;
+            checkHashRoute();
+        }
+
+        function openDedicatedLetter() {
+            const env = document.getElementById('dedicatedEnvelopeState');
+            const lettr = document.getElementById('dedicatedLetterState');
+            const audio = document.getElementById('dedicatedAudio');
+            playYouTube();
+            if(!currentYT && audio) {
+                audio.play().catch(e => console.log("Audio autoplay prevented"));
+            }
+            env.style.opacity = '0';
+            env.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                env.classList.add('hidden');
+                lettr.classList.remove('hidden');
+                setTimeout(() => {
+                    lettr.style.opacity = '1';
+                    lettr.style.transform = 'scale(1)';
+                    triggerConfetti();
+                }, 50);
+            }, 300);
+        }
+
+        function triggerConfetti() {
+            if(typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function checkHashRoute() {
+            const hash = window.location.hash;
+            if(hash && hash.length > 1) {
+                const encoded = hash.substring(1);
+                const data = decodeLetterPayload(encoded);
+                if(data) {
+                    currentActiveSlug = encoded;
+                    document.getElementById('createView').classList.add('hidden');
+                    document.getElementById('successModal').classList.add('hidden');
+                    document.querySelector('header').classList.add('hidden');
+                    
+                    const dedicatedView = document.getElementById('dedicatedLetterView');
+                    dedicatedView.classList.remove('hidden');
+
+                    const theme = themes[data.theme] || themes.pink;
+                    const container = document.getElementById('dedicatedCardContainer');
+                    const openBtn = document.getElementById('dedicatedOpenBtn');
+                    const floatingContainer = document.getElementById('dedicatedFloatingIcons');
+
+                    container.className = `relative w-full ${theme.containerBg} rounded-3xl shadow-2xl border-4 ${theme.border} overflow-hidden flex flex-col min-h-[550px] transition-all duration-500`;
+                    openBtn.className = `w-full font-bold py-4 rounded-full shadow-lg flex items-center justify-center space-x-3 transition transform hover:scale-105 text-base cursor-pointer z-20 ${theme.buttonBg}`;
+
+                    if(data.theme === 'handwritten') {
+                        floatingContainer.innerHTML = `
+                            <div class="absolute top-6 left-6 float-animation">${theme.floatingIcons[0]}</div>
+                            <div class="absolute bottom-10 right-8 float-animation" style="animation-delay: 2s;">${theme.floatingIcons[1]}</div>
+                            <div class="absolute top-1/3 right-6 float-animation" style="animation-delay: 1s;">${theme.floatingIcons[2]}</div>
+                        `;
+                    } else {
+                        floatingContainer.innerHTML = `
+                            <div class="absolute top-10 left-6 text-3xl float-animation">${theme.floatingIcons[0]}</div>
+                            <div class="absolute bottom-10 right-6 text-2xl float-animation" style="animation-delay: 2s;">${theme.floatingIcons[1]}</div>
+                            <div class="absolute top-1/2 right-4 text-4xl float-animation" style="animation-delay: 1s;">${theme.floatingIcons[2]}</div>
+                        `;
+                    }
+
+                    document.getElementById('dedicatedAvatar').src = data.avatar;
+                    document.getElementById('dedicatedLetterAvatar').src = data.avatar;
+                    document.getElementById('dedicatedTitle').innerText = `A Special Letter For ${data.recipient}`;
+                    document.getElementById('dedicatedSenderLabel').innerText = data.sender;
+                    document.getElementById('dedicatedRecipientTitle').innerText = `My Dearest ${data.recipient}`;
+                    document.getElementById('dedicatedSenderSub').innerText = data.sender;
+                    document.getElementById('dedicatedBodyContent').innerText = data.body;
+                    document.getElementById('dedicatedSignOff').innerText = data.sign;
+
+                    currentYT = data.yt ? parseYouTube(String(data.yt)) : null;
+                    if (currentYT) currentYT.start = parseInt(data.ytStart, 10) || 0;
+                    preloadYouTube();
+
+                    const audioSource = document.getElementById('dedicatedAudioSource');
+                    const audio = document.getElementById('dedicatedAudio');
+                    if(data.music) {
+                        audioSource.src = data.music;
+                        audio.load();
+                    }
+
+                    document.getElementById('dedicatedEnvelopeState').classList.remove('hidden');
+                    document.getElementById('dedicatedEnvelopeState').style.opacity = '1';
+                    document.getElementById('dedicatedEnvelopeState').style.transform = 'scale(1)';
+                    document.getElementById('dedicatedLetterState').classList.add('hidden');
+                    document.getElementById('dedicatedLetterState').style.opacity = '0';
+                }
+            }
+        }
+
+        window.addEventListener('load', () => {
+            loadSample('romantic');
+            checkHashRoute();
+        });
+
+        window.addEventListener('hashchange', checkHashRoute);
+    </script>
+</body>
+</html>
